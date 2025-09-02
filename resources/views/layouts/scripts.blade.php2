@@ -1,0 +1,9 @@
+@php $version = time(); @endphp
+<script src="{{ asset('js/app.js') }}?v={{ $version }}"></script>
+<script>
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+</script>
