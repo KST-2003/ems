@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Employee;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\EmployeeLeavesExport;
-use Str;
-use PDF;
+use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as PDF;
 
 class LeaveController extends Controller
 {
@@ -186,26 +185,26 @@ class LeaveController extends Controller
 
     public function exportExcel(Employee $employee)
     {
-        return Excel::download(new EmployeeLeavesExport($employee), 'leaves.xlsx');
+        $safeEmployeeName = preg_replace('/[\s\/\\\?*:|"<>]+/', '_', $employee->name);
+        $date = now()->format('d-m-Y');
+        $filename = "{$safeEmployeeName}_ပျက်ကွက်မှတ်တမ်း_{$date}.xlsx";
+        return Excel::download(new EmployeeLeavesExport($employee), $filename);
     }
 
     public function exportPdf(Employee $employee)
     {
         try {
             $leaves = $employee->leaves()->with('leaveType')->get();
-            // This line is from your old Dompdf setup; you can remove it.
-            // \Log::info('Font file check: ' . (file_exists(storage_path('fonts/NotoSerifMyanmar-Regular.ttf')) ? 'Font found' : 'Font missing'));
             
-            // This line is from your old Dompdf setup; you can remove it.
-            // \Log::info('DOMPDF Font Config: ' . json_encode(config('dompdf.options.font_data')));
-
-            // Load view with the mPDF facade
+            // The package will automatically use the Pyidaungsu font from config/pdf.php
+            /** @var \Mccarlosen\LaravelMpdf\LaravelMpdfWrapper $pdf */
             $pdf = PDF::loadView('leaves.pdf', compact('employee', 'leaves'));
             
-            $employeeName = Str::slug($employee->name);
+            $safeEmployeeName = preg_replace('/[\s\/\\\?*:|"<>]+/', '_', $employee->name);
             $date = now()->format('d-m-Y');
-            $filename = "{$employeeName}_leaves_{$date}.pdf";
+            $filename = "{$safeEmployeeName}_ပျက်ကွက်မှတ်တမ်း_{$date}.pdf";
             
+            /** @noinspection PhpUndefinedMethodInspection */
             return $pdf->download($filename);
         } catch (\Exception $e) {
             \Log::error('PDF Export Error: ' . $e->getMessage(), [

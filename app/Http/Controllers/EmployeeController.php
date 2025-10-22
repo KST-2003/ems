@@ -39,19 +39,20 @@ class EmployeeController extends Controller
 
         if (!empty($validated['experiences'])) {
             $experiences = array_filter($validated['experiences'], function ($experience) {
-                return !empty($experience['position']) || 
-                       !empty($experience['department']) || 
-                       !empty($experience['from_date']) || 
-                       !empty($experience['location']);
+                return !empty($experience['position']) ||
+                    !empty($experience['department']) ||
+                    !empty($experience['from_date']) ||
+                    !empty($experience['location']);
             });
             foreach ($experiences as $experience) {
                 EmployeeExperience::create([
                     'employee_id' => $employee->id,
+                    'company_name' => $experience['company_name'] ?? null,
                     'position' => $experience['position'] ?? null,
                     'department' => $experience['department'] ?? null,
                     'from_date' => $experience['from_date'] ?? null,
-                    'to_date' => $experience['is_current'] ? null : ($experience['to_date'] ?? null),
-                    'is_current' => $experience['is_current'] ?? false,
+                    'to_date' => isset($experience['is_current']) && $experience['is_current'] ? null : ($experience['to_date'] ?? null),
+                    'is_current' => isset($experience['is_current']) ? (bool)$experience['is_current'] : false,
                     'location' => $experience['location'] ?? null,
                 ]);
             }
@@ -59,17 +60,20 @@ class EmployeeController extends Controller
 
         if (!empty($validated['certificates'])) {
             $certificates = array_filter($validated['certificates'], function ($certificate) {
-                return !empty($certificate['certificate_name']) || 
-                       !empty($certificate['issue_date']) || 
-                       !empty($certificate['issuer']) || 
-                       !empty($certificate['description']) || 
-                       !empty($certificate['file']);
+                return !empty($certificate['certificate_name']) ||
+                    !empty($certificate['issue_date']) ||
+                    !empty($certificate['issuer']) ||
+                    !empty($certificate['description']) ||
+                    !empty($certificate['file']);
             });
             foreach ($certificates as $index => $certificate) {
                 $filePath = null;
                 if ($request->hasFile("certificates.$index.file")) {
+                    Log::info("Certificate file detected: " . $request->file("certificates.$index.file")->getClientOriginalName() . ", MIME: " . $request->file("certificates.$index.file")->getClientMimeType() . ", Size: " . $request->file("certificates.$index.file")->getSize());
                     $filePath = $request->file("certificates.$index.file")->store('certificates', 'public');
                     $filePath = basename($filePath);
+                } else {
+                    Log::warning("No certificate file uploaded or upload failed for index: $index");
                 }
                 EmployeeCertificate::create([
                     'employee_id' => $employee->id,
@@ -106,7 +110,7 @@ class EmployeeController extends Controller
     public function show(Employee $employee)
     {
         $employee->load('experiences', 'certificates', 'criminalRecords', 'attendances', 'leaves', 'absences');
-        
+
         return view('employees.show', compact('employee'));
     }
 
@@ -116,8 +120,10 @@ class EmployeeController extends Controller
         return view('employees.edit', compact('employee'));
     }
 
+
     public function update(Request $request, Employee $employee)
     {
+        
         $validated = $this->validateRequest($request, $employee->id);
 
         if ($request->hasFile('profile_image')) {
@@ -133,19 +139,20 @@ class EmployeeController extends Controller
         $employee->experiences()->delete();
         if (!empty($validated['experiences'])) {
             $experiences = array_filter($validated['experiences'], function ($experience) {
-                return !empty($experience['position']) || 
-                       !empty($experience['department']) || 
-                       !empty($experience['from_date']) || 
-                       !empty($experience['location']);
+                return !empty($experience['position']) ||
+                    !empty($experience['department']) ||
+                    !empty($experience['from_date']) ||
+                    !empty($experience['location']);
             });
             foreach ($experiences as $experience) {
                 EmployeeExperience::create([
                     'employee_id' => $employee->id,
+                    'company_name' => $experience['company_name'] ?? null,
                     'position' => $experience['position'] ?? null,
                     'department' => $experience['department'] ?? null,
                     'from_date' => $experience['from_date'] ?? null,
-                    'to_date' => $experience['is_current'] ? null : ($experience['to_date'] ?? null),
-                    'is_current' => $experience['is_current'] ?? false,
+                    'to_date' => isset($experience['is_current']) && $experience['is_current'] ? null : ($experience['to_date'] ?? null),
+                    'is_current' => isset($experience['is_current']) ? (bool)$experience['is_current'] : false,
                     'location' => $experience['location'] ?? null,
                 ]);
             }
@@ -154,20 +161,35 @@ class EmployeeController extends Controller
         $employee->certificates()->delete();
         if (!empty($validated['certificates'])) {
             $certificates = array_filter($validated['certificates'], function ($certificate) {
-                return !empty($certificate['certificate_name']) || 
-                       !empty($certificate['issue_date']) || 
-                       !empty($certificate['issuer']) || 
-                       !empty($certificate['description']) || 
-                       !empty($certificate['file']);
+                return !empty($certificate['certificate_name']) ||
+                    !empty($certificate['issue_date']) ||
+                    !empty($certificate['issuer']) ||
+                    !empty($certificate['description']) ||
+                    !empty($certificate['file']);
             });
             foreach ($certificates as $index => $certificate) {
                 $filePath = $certificate['existing_file'] ?? null;
                 if ($request->hasFile("certificates.$index.file")) {
-                    if ($filePath) {
-                        Storage::disk('public')->delete('certificates/' . $filePath);
+                    $file = $request->file("certificates.$index.file");
+                    Log::info("Certificate upload attempt", [
+                        'name' => $file->getClientOriginalName(),
+                        'mime' => $file->getClientMimeType(),
+                        'size' => $file->getSize(),
+                        'extension' => $file->getClientOriginalExtension(),
+                        'error' => $file->getError(),
+                    ]);
+                    try {
+                        if ($filePath) {
+                            Storage::disk('public')->delete('certificates/' . $filePath);
+                        }
+                        $filePath = $file->store('certificates', 'public');
+                        $filePath = basename($filePath);
+                    } catch (\Exception $e) {
+                        Log::error("Certificate upload failed: " . $e->getMessage());
+                        throw $e;
                     }
-                    $filePath = $request->file("certificates.$index.file")->store('certificates', 'public');
-                    $filePath = basename($filePath);
+                } else {
+                    Log::warning("No certificate file uploaded or upload failed for index: $index");
                 }
                 EmployeeCertificate::create([
                     'employee_id' => $employee->id,
@@ -188,11 +210,24 @@ class EmployeeController extends Controller
             foreach ($criminalRecords as $index => $record) {
                 $filePath = $record['existing_file'] ?? null;
                 if ($request->hasFile("criminal_records.$index.file")) {
-                    if ($filePath) {
-                        Storage::disk('public')->delete('criminal_records/' . $filePath);
+                    $file = $request->file("criminal_records.$index.file");
+                    Log::info("Criminal record upload attempt", [
+                        'name' => $file->getClientOriginalName(),
+                        'mime' => $file->getClientMimeType(),
+                        'size' => $file->getSize(),
+                        'extension' => $file->getClientOriginalExtension(),
+                        'error' => $file->getError(),
+                    ]);
+                    try {
+                        if ($filePath) {
+                            Storage::disk('public')->delete('criminal_records/' . $filePath);
+                        }
+                        $filePath = $file->store('criminal_records', 'public');
+                        $filePath = basename($filePath);
+                    } catch (\Exception $e) {
+                        Log::error("Criminal record upload failed: " . $e->getMessage());
+                        throw $e;
                     }
-                    $filePath = $request->file("criminal_records.$index.file")->store('criminal_records', 'public');
-                    $filePath = basename($filePath);
                 }
                 EmployeeCriminalRecord::create([
                     'employee_id' => $employee->id,
@@ -249,13 +284,13 @@ class EmployeeController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                        <a href="' . route('employees.show', $row->id) . '" class="btn btn-sm btn-info">' . __('messages.view') . '</a>
-                        <a href="' . route('employees.edit', $row->id) . '" class="btn btn-sm btn-warning">' . __('messages.edit') . '</a>
-                        <form action="' . route('employees.destroy', $row->id) . '" method="POST" style="display:inline;">
-                            ' . csrf_field() . '
-                            ' . method_field('DELETE') . '
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'' . __('messages.confirm_delete') . '\')">' . __('messages.delete') . '</button>
-                        </form>';
+                           <a href="' . route('employees.show', $row->id) . '" class="btn btn-sm btn-info">' . __('messages.view') . '</a>
+                           <a href="' . route('employees.edit', $row->id) . '" class="btn btn-sm btn-warning">' . __('messages.edit') . '</a>
+                           <form action="' . route('employees.destroy', $row->id) . '" method="POST" style="display:inline;">
+                               ' . csrf_field() . '
+                               ' . method_field('DELETE') . '
+                               <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'' . __('messages.confirm_delete') . '\')">' . __('messages.delete') . '</button>
+                           </form>';
                 })
                 ->rawColumns(['profile_image', 'action'])
                 ->make(true);
@@ -273,7 +308,7 @@ class EmployeeController extends Controller
             'email' => 'nullable|email|unique:employees,email,' . $employeeId,
             'phone' => 'nullable|string|max:20',
             'gender' => 'nullable|in:male,female',
-            'profile_image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'profile_image' => 'nullable|image|mimes:jpg,png,jpeg|max:10240', // Updated to 10MB
             'dob' => 'nullable|date',
             'nationality' => 'nullable|string',
             'father_name' => 'nullable|string',
@@ -284,10 +319,11 @@ class EmployeeController extends Controller
             'address' => 'nullable|string',
             'education' => 'nullable|string',
             'current_position' => 'nullable|string',
-            'salary' => 'nullable|string|regex:/^[0-9]+(\.[0-9]{1,2})?$/',
+            'salary' => 'nullable|string',
             'department' => 'nullable|string',
             'blood_type' => 'nullable|string',
             'experiences' => 'nullable|array',
+            'experiences.*.company_name' => 'nullable|string',
             'experiences.*.position' => 'required_with:experiences.*.department,experiences.*.from_date,experiences.*.location|string|nullable',
             'experiences.*.department' => 'required_with:experiences.*.position,experiences.*.from_date,experiences.*.location|string|nullable',
             'experiences.*.from_date' => 'required_with:experiences.*.position,experiences.*.department,experiences.*.location|date|nullable',
@@ -296,14 +332,14 @@ class EmployeeController extends Controller
             'experiences.*.location' => 'required_with:experiences.*.position,experiences.*.department,experiences.*.from_date|string|nullable',
             'certificates' => 'nullable|array',
             'certificates.*.certificate_name' => 'required_with:certificates.*.issue_date,certificates.*.issuer|string|nullable',
-            'certificates.*.issue_date' => 'required_with:certificates.*.certificate_name,certificates.*.issuer|date|nullable',
-            'certificates.*.issuer' => 'required_with:certificates.*.certificate_name,certificates.*.issue_date|string|nullable',
+            'certificates.*.issue_date' => 'nullable|date',
+            'certificates.*.issuer' => 'nullable|string',
             'certificates.*.description' => 'nullable|string',
-            'certificates.*.file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
+            //    'certificates.*.file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:10240', // Updated to 10MB
             'certificates.*.existing_file' => 'nullable|string',
             'criminal_records' => 'nullable|array',
             'criminal_records.*.description' => 'nullable|string',
-            'criminal_records.*.file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
+            'criminal_records.*.file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:10240', // Updated to 10MB
             'criminal_records.*.existing_file' => 'nullable|string',
         ], [
             'experiences.*.position.required_with' => __('messages.experience_position_required'),
@@ -311,8 +347,6 @@ class EmployeeController extends Controller
             'experiences.*.from_date.required_with' => __('messages.experience_from_date_required'),
             'experiences.*.location.required_with' => __('messages.experience_location_required'),
             'certificates.*.certificate_name.required_with' => __('messages.certificate_name_required'),
-            'certificates.*.issue_date.required_with' => __('messages.certificate_issue_date_required'),
-            'certificates.*.issuer.required_with' => __('messages.certificate_issuer_required'),
         ]);
     }
 }

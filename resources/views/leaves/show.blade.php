@@ -2,15 +2,15 @@
 
 @section('content')
     <div class="pagetitle">
-        <h1>{{ __('messages.employee_leaves') }} - {{ $employee->name }}</h1>
-        <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-primary float-end">
+        <h1>{{ __('messages.employee_leaves') }} - {{ $employee->name }}</h1><br>
+        <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-primary float-end mb-2">
             {{ __('messages.view_employee') }}
         </a>
     </div>
 
     <div class="mb-3">
-        <label for="leave_type">{{ __('messages.leave_type') }}</label>
-        <select id="leave_type" class="form-control">
+        <label for="leave_type" class="mb-2">{{ __('messages.leave_type') }}</label>
+        <select id="leave_type" class="form-control w-25">
             <option value="">{{ __('messages.select_leaves-type') }}</option>
             @foreach ($leaveTypes as $type)
                 <option value="{{ $type->id }}">{{ $type->name }}</option>

@@ -5,6 +5,9 @@
         .form-step { display: none; }
         .form-step.active { display: block; }
         .error { color: red; }
+        .is-invalid { border-color: red; }
+        .invalid-feedback { display: none; }
+        .is-invalid ~ .invalid-feedback { display: block; }
     </style>
 @endsection
 @section('content')
@@ -252,6 +255,12 @@
             const entry = `
                 <div class="experience-entry">
                     <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">{{ __('messages.company_name') }}</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="experiences[${experienceIndex}][company_name]" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row mb-3">
                         <label class="col-sm-3 col-form-label">{{ __('messages.position') }}</label>
                         <div class="col-sm-8">
                             <input type="text" name="experiences[${experienceIndex}][position]" class="form-control">
@@ -279,8 +288,9 @@
                         <label class="col-sm-3 col-form-label">{{ __('messages.to_date') }}</label>
                         <div class="col-sm-9">
                             <input type="date" name="experiences[${experienceIndex}][to_date]" class="form-control to-date">
+                            <input type="hidden" name="experiences[${experienceIndex}][is_current]" value="0">
                             <label><input type="checkbox" class="is-current" name="experiences[${experienceIndex}][is_current]" value="1"> {{ __('messages.currently') }}</label>
-                            <small class="form-text text-muted">{{ __('messages.uncheck_currently_to_quit') }}</small>
+                            <span class="invalid-feedback">{{ __('messages.experience_to_date_required') }}</span>
                         </div>
                     </div>
                     <div class="form-group row mb-3">
@@ -315,14 +325,12 @@
                         <label class="col-sm-3 col-form-label">{{ __('messages.issue_date') }}</label>
                         <div class="col-sm-9">
                             <input type="date" name="certificates[${certificateIndex}][issue_date]" class="form-control">
-                            <span class="invalid-feedback">{{ __('messages.certificate_issue_date_required') }}</span>
                         </div>
                     </div>
                     <div class="form-group row mb-3">
                         <label class="col-sm-3 col-form-label">{{ __('messages.issuer') }}</label>
                         <div class="col-sm-9">
                             <input type="text" name="certificates[${certificateIndex}][issuer]" class="form-control">
-                            <span class="invalid-feedback">{{ __('messages.certificate_issuer_required') }}</span>
                         </div>
                     </div>
                     <div class="form-group row mb-3">
@@ -376,20 +384,26 @@
 
         function bindDeleteButtons() {
             document.querySelectorAll('.delete-entry').forEach(button => {
-                button.addEventListener('click', function () {
-                    this.closest('.experience-entry, .certificate-entry, .criminal-record-entry').remove();
-                });
+                button.removeEventListener('click', handleDelete);
+                button.addEventListener('click', handleDelete);
             });
+        }
+
+        function handleDelete() {
+            this.closest('.experience-entry, .certificate-entry, .criminal-record-entry').remove();
         }
 
         function bindCurrentCheckboxes() {
             document.querySelectorAll('.is-current').forEach(checkbox => {
-                checkbox.addEventListener('change', function () {
-                    const toDateInput = this.closest('.form-group').querySelector('.to-date');
-                    toDateInput.disabled = this.checked;
-                    if (this.checked) toDateInput.value = '';
-                });
+                checkbox.removeEventListener('change', handleCheckboxChange);
+                checkbox.addEventListener('change', handleCheckboxChange);
             });
+        }
+
+        function handleCheckboxChange() {
+            const toDateInput = this.closest('.form-group').querySelector('.to-date');
+            toDateInput.disabled = this.checked;
+            if (this.checked) toDateInput.value = '';
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -409,7 +423,7 @@
                     const currentInputs = steps[currentStep].querySelectorAll('input[required], select[required]');
                     let valid = true;
                     currentInputs.forEach(input => {
-                        if (!input.value) {
+                        if (!input.value.trim()) {
                             input.classList.add('is-invalid');
                             valid = false;
                         } else {
@@ -444,41 +458,43 @@
                 let hasErrors = false;
 
                 experienceEntries.forEach((entry, index) => {
+                    const companyName = entry.querySelector(`input[name="experiences[${index}][company_name]"]`);
                     const position = entry.querySelector(`input[name="experiences[${index}][position]"]`);
                     const department = entry.querySelector(`input[name="experiences[${index}][department]"]`);
                     const fromDate = entry.querySelector(`input[name="experiences[${index}][from_date]"]`);
                     const toDate = entry.querySelector(`input[name="experiences[${index}][to_date]"]`);
-                    const isCurrent = entry.querySelector(`input[name="experiences[${index}][is_current]"]`);
+                    const isCurrent = entry.querySelector(`input[name="experiences[${index}][is_current]"]:checked`);
                     const location = entry.querySelector(`input[name="experiences[${index}][location]"]`);
 
-                    if (!position.value && !department.value && !fromDate.value && !toDate.value && !isCurrent.checked && !location.value) {
+                    const anyFilled = position.value.trim() || department.value.trim() || fromDate.value.trim() || toDate.value.trim() || isCurrent || location.value.trim();
+                    if (!anyFilled) {
                         entry.remove();
                     } else {
-                        if (!position.value) {
+                        if (!position.value.trim()) {
                             position.classList.add('is-invalid');
                             hasErrors = true;
                         } else {
                             position.classList.remove('is-invalid');
                         }
-                        if (!department.value) {
+                        if (!department.value.trim()) {
                             department.classList.add('is-invalid');
                             hasErrors = true;
                         } else {
                             department.classList.remove('is-invalid');
                         }
-                        if (!fromDate.value) {
+                        if (!fromDate.value.trim()) {
                             fromDate.classList.add('is-invalid');
                             hasErrors = true;
                         } else {
                             fromDate.classList.remove('is-invalid');
                         }
-                        if (!isCurrent.checked && !toDate.value) {
+                        if (!isCurrent && !toDate.value.trim()) {
                             toDate.classList.add('is-invalid');
                             hasErrors = true;
                         } else {
                             toDate.classList.remove('is-invalid');
                         }
-                        if (!location.value) {
+                        if (!location.value.trim()) {
                             location.classList.add('is-invalid');
                             hasErrors = true;
                         } else {
@@ -494,26 +510,14 @@
                     const description = entry.querySelector(`textarea[name="certificates[${index}][description]"]`);
                     const file = entry.querySelector(`input[name="certificates[${index}][file]"]`);
 
-                    if (!certificateName.value && !issueDate.value && !issuer.value && !description.value && !file.files.length) {
+                    if (!certificateName.value.trim() && !issueDate.value.trim() && !issuer.value.trim() && !description.value.trim() && !file.files.length) {
                         entry.remove();
                     } else {
-                        if (!certificateName.value && (issueDate.value || issuer.value || description.value || file.files.length)) {
+                        if (!certificateName.value.trim()) {
                             certificateName.classList.add('is-invalid');
                             hasErrors = true;
                         } else {
                             certificateName.classList.remove('is-invalid');
-                        }
-                        if (!issueDate.value && (certificateName.value || issuer.value || description.value || file.files.length)) {
-                            issueDate.classList.add('is-invalid');
-                            hasErrors = true;
-                        } else {
-                            issueDate.classList.remove('is-invalid');
-                        }
-                        if (!issuer.value && (certificateName.value || issueDate.value || description.value || file.files.length)) {
-                            issuer.classList.add('is-invalid');
-                            hasErrors = true;
-                        } else {
-                            issuer.classList.remove('is-invalid');
                         }
                     }
                 });
@@ -522,7 +526,7 @@
                     const description = entry.querySelector(`textarea[name="criminal_records[${index}][description]"]`);
                     const file = entry.querySelector(`input[name="criminal_records[${index}][file]"]`);
 
-                    if (!description.value && !file.files.length) {
+                    if (!description.value.trim() && !file.files.length) {
                         entry.remove();
                     }
                 });

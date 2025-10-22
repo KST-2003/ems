@@ -55,13 +55,13 @@ class EmployeeLeavesExport implements FromCollection, WithHeadings, WithEvents, 
 
                 // Merge cells for title (Employee Name)
                 $sheet->mergeCells('A1:F1');
-                $sheet->setCellValue('A1', 'Employee Name - ' . $this->employee->name);
+                $sheet->setCellValue('A1', 'ဝန်ထမ်းအမည် - ' . $this->employee->name);
                 $sheet->getStyle('A1')->getFont()->setBold(true);
                 $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
                 // Merge cells for leave type header
                 $sheet->mergeCells('A2:F2');
-                $sheet->setCellValue('A2', 'Leave Type: Annual Leave');
+                $sheet->setCellValue('A2', 'ပျက်ကွက်မှတ်တမ်း');
                 $sheet->getStyle('A2')->getFont()->setBold(true);
                 $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 

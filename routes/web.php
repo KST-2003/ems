@@ -6,12 +6,20 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\RecruitmentController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 Auth::routes();
+
+
+Route::get('/phpinfo', function() {
+    phpinfo();
+});
+
 
 // Group all authenticated routes under a single middleware group
 //leaves/list comes after Route::resource('leaves', ...).
