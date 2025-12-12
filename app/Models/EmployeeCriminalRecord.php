@@ -12,11 +12,17 @@ class EmployeeCriminalRecord extends Model
 
     protected $fillable = [
         'employee_id',
+        'name', // New Field
+        'start_date', // New Field
+        'end_date', // New Field
         'description',
         'file_path',
     ];
 
     protected $appends = ['file_url'];
+
+    // Cast dates automatically
+    protected $casts = ['start_date', 'end_date'];
 
     public function employee()
     {

@@ -5,26 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EmployeeExperience extends Model
+class EmployeeTraining extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'employee_id',
-        'company_name',
-        'position',
-        'department',
-        'from_date',
-        'to_date',
-        'is_current', 
+        'training_type', // ENUM: 'domestic', 'foreign', 'other'
+        'course_name',
         'location',
+        'start_date',
+        'end_date',
     ];
 
-    protected $casts = [
-        'from_date' => 'date',
-        'to_date' => 'date',
-        'is_current' => 'boolean',
-    ];
+    // Cast dates automatically
+    protected $casts = ['start_date', 'end_date'];
 
     public function employee()
     {

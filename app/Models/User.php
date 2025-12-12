@@ -11,24 +11,22 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable , HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Note: 'role_id' is removed because Spatie handles roles via a pivot table.
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role'
+        'is_active',
+        // 'role_id' removed
     ];
 
     /**
      * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -37,12 +35,12 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be cast.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
+
     public function getSidebarKey()
     {
         return 'sidebar_' . $this->id;

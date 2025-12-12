@@ -5,25 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EmployeeExperience extends Model
+class EmployeeRelative extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'employee_id',
-        'company_name',
-        'position',
-        'department',
-        'from_date',
-        'to_date',
-        'is_current', 
+        'name',
+        'relation', // How they are related (e.g., "Brother", "Uncle")
+        'job',
         'location',
-    ];
-
-    protected $casts = [
-        'from_date' => 'date',
-        'to_date' => 'date',
-        'is_current' => 'boolean',
     ];
 
     public function employee()

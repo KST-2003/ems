@@ -21,6 +21,8 @@ class EmployeeCertificate extends Model
 
     protected $appends = ['file_url'];
 
+    protected $casts = ['issue_date'];
+
     public function employee()
     {
         return $this->belongsTo(Employee::class);

@@ -5,17 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EmployeeAttendance extends Model
+class EmployeeChild extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'employee_id',
-        'date',
-        'present', // Boolean or similar status
+        'name',
+        'date_of_birth',
     ];
 
-    protected $casts = ['date'];
+    // Cast date automatically
+    protected $casts = ['date_of_birth'];
 
     public function employee()
     {

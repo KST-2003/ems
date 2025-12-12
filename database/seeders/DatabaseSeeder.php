@@ -14,5 +14,16 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         // \App\Models\User::factory(10)->create();
+        $this->call(RoleAndPermissionSeeder::class);
+
+        // You now have 4 users in your database with the password password.
+
+        // superadmin@example.com (Has access to everything)
+
+        // admin@example.com (Cannot manage users)
+
+        // usera@example.com (Can View + Print)
+
+        // userb@example.com (Can View Only)
     }
 }

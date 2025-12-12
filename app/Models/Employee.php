@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class Employee extends Model
 {
@@ -13,30 +14,47 @@ class Employee extends Model
     protected $fillable = [
         'employee_id',
         'name',
-        'email',
         'phone',
         'gender',
         'profile_image',
-        'dob',
+        'mm_dob',
+        'eng_dob',
         'nationality',
+        'religion',
         'father_name',
         'mother_name',
         'nrc',
         'spouse_name',
-        'children_names',
-        'address',
-        'education',
+        'spouse_job',
+        'spouse_job_place',
+        'current_address',
+        'permenant_address',
         'current_position',
         'salary',
         'department',
         'blood_type',
+        'lang_proficiency',
+        'hobby',
     ];
 
     protected $appends = ['profile_image_url', 'total_experience_years'];
 
+    // Modern casting for dates
+    protected $casts = [
+        'mm_dob' => 'date',
+        'eng_dob' => 'date',
+    ];
+
+    /** --- Relationships --- */
+
     public function experiences()
     {
         return $this->hasMany(EmployeeExperience::class);
+    }
+
+    public function pastExperiences()
+    {
+        return $this->hasMany(EmployeePastExperience::class);
     }
 
     public function certificates()
@@ -61,7 +79,7 @@ class Employee extends Model
 
     public function absences()
     {
-        return $this->hasMany(EmployeeLeave::class, 'employee_id', 'id');
+        return $this->hasMany(EmployeeAbsence::class);
     }
 
     public function recruitments()
@@ -69,11 +87,38 @@ class Employee extends Model
         return $this->hasMany(Recruitment::class);
     }
 
-    public function getProfileImageUrlAttribute()
+    public function educations()
     {
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        return $this->hasMany(EmployeeEducation::class);
+    }
+
+    public function trainings()
+    {
+        return $this->hasMany(EmployeeTraining::class);
+    }
+
+    public function children()
+    {
+        return $this->hasMany(EmployeeChild::class);
+    }
+
+    public function relatives()
+    {
+        return $this->hasMany(EmployeeRelative::class);
+    }
+
+    public function serviceRecords()
+    {
+        return $this->hasMany(EmployeeServiceRecord::class);
+    }
+
+    /** --- Accessors --- */
+
+    public function getProfileImageUrlAttribute(): ?string
+    {
         $disk = Storage::disk('public');
         $path = 'employees/' . $this->profile_image;
+        
         if ($this->profile_image && $disk->exists($path)) {
             return '/storage/' . $path;
         }
@@ -85,14 +130,24 @@ class Employee extends Model
         });
     }
 
-    public function getTotalExperienceYearsAttribute()
+    public function getTotalExperienceYearsAttribute(): float
     {
         $totalDays = 0;
 
-        foreach ($this->experiences as $experience) {
-            $fromDate = \Carbon\Carbon::parse($experience->from_date);
-            $toDate = $experience->is_current ? now() : ($experience->to_date ? \Carbon\Carbon::parse($experience->to_date) : $fromDate);
-            $totalDays += $fromDate->diffInDays($toDate);
+        // Eager loading protection (optional check)
+        if ($this->relationLoaded('experiences')) {
+            foreach ($this->experiences as $experience) {
+                // Since we cast dates in EmployeeExperience, these are already Carbon or null
+                $start = $experience->from_date; 
+                
+                if (!$start) continue; // Skip if start date is missing
+
+                $end = $experience->is_current 
+                    ? Carbon::now() 
+                    : ($experience->to_date ?? $start);
+
+                $totalDays += $start->diffInDays($end);
+            }
         }
 
         return round($totalDays / 365, 2);

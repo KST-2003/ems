@@ -17,6 +17,11 @@ class EmployeeAbsence extends Model
         'remark',
     ];
 
+    protected $casts = [
+        'start_date',
+        'end_date',
+    ];
+
     public function employee()
     {
         return $this->belongsTo(Employee::class);

@@ -15,18 +15,19 @@ class EmployeeLeave extends Model
         'start_date',
         'end_date',
         'reason',
-        'status',
+        'status', // e.g., 'pending', 'approved', 'rejected'
     ];
 
-// Cast dates automatically to Carbon | No need to manually convert date strings to Carbon instances using Carbon::parse()
-    protected $dates = [
+    protected $casts = [
         'start_date',
         'end_date',
     ];
+    
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id', 'id');
     }
+    
     public function leaveType()
     {
         return $this->belongsTo(LeaveType::class, 'leave_type_id', 'id');
