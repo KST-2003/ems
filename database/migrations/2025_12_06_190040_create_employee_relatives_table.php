@@ -11,8 +11,8 @@ class CreateEmployeeRelativesTable extends Migration
         Schema::create('employee_relatives', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->string('relation'); // e.g. Brother, Uncle
+            $table->string('name')->nullable();
+            $table->string('relation')->nullable(); // e.g. Brother, Uncle
             $table->string('job')->nullable();
             $table->string('location')->nullable();
             $table->timestamps();

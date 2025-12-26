@@ -11,7 +11,7 @@ class CreateEmployeeServiceRecordsTable extends Migration
         Schema::create('employee_service_records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('status_type')->nullable(); // permanent_appointment, transfer, etc.
+            $table->string('grade')->nullable(); // junior, senior, selection, higher
             $table->date('recruited_date')->nullable();
             $table->text('remark')->nullable();
             $table->timestamps();
@@ -23,3 +23,4 @@ class CreateEmployeeServiceRecordsTable extends Migration
         Schema::dropIfExists('employee_service_records');
     }
 }
+

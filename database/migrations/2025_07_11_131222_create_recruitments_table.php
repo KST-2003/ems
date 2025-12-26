@@ -16,7 +16,7 @@ class CreateRecruitmentsTable extends Migration
         Schema::create('recruitments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('email')->unique();
             $table->string('position');
             $table->string('status')->default('applied');

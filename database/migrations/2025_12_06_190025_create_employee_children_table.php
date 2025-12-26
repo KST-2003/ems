@@ -11,7 +11,7 @@ class CreateEmployeeChildrenTable extends Migration
         Schema::create('employee_children', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->timestamps();
         });

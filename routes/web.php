@@ -5,9 +5,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\RecruitmentController;
+use App\Http\Controllers\EmployeePrintController; // ← New controller
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 Route::get('/', function () {
     return view('welcome');
@@ -15,21 +14,23 @@ Route::get('/', function () {
 
 Auth::routes();
 
-
 Route::get('/phpinfo', function() {
     phpinfo();
 });
 
-
-// Group all authenticated routes under a single middleware group
-//leaves/list comes after Route::resource('leaves', ...).
-//Laravel matches routes top to bottom, and /leaves/list partially matches /leaves/{leave} (the {leave} wildcard).
-//So when you visit /leaves/list, Laravel thinks list is a {leave} parameter and calls the show method. That’s why you get the “View Leave” page instead of JSON.
 Route::middleware('auth')->group(function () {
- // Employees
+
+    // Employees
     Route::get('employees/list', [EmployeeController::class, 'list'])->name('employees.list');
     Route::get('employees', [EmployeeController::class, 'webIndex'])->name('employees.index');
     Route::resource('employees', EmployeeController::class)->except(['index']);
+
+    // Print Templates (new)
+    Route::prefix('employees/{employee}/print')->name('employees.print.')->group(function () {
+        Route::get('select', [EmployeePrintController::class, 'selectTemplate'])->name('select');
+        Route::get('template-a', [EmployeePrintController::class, 'templateA'])->name('template-a');
+        Route::get('template-b', [EmployeePrintController::class, 'templateB'])->name('template-b');
+    });
 
     // Attendance
     Route::resource('attendances', AttendanceController::class);
@@ -43,7 +44,7 @@ Route::middleware('auth')->group(function () {
     // Recruitment
     Route::resource('recruitments', RecruitmentController::class);
 
-    // Exports
+    // Exports (if you still use them)
     Route::get('/{employee}/export-excel', [LeaveController::class, 'exportExcel'])->name('export.excel');
     Route::get('/{employee}/export-pdf', [LeaveController::class, 'exportPdf'])->name('export.pdf');
 });

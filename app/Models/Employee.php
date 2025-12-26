@@ -107,9 +107,13 @@ class Employee extends Model
         return $this->hasMany(EmployeeRelative::class);
     }
 
-    public function serviceRecords()
+    public function serviceRecord() // singular, because one per employee
     {
-        return $this->hasMany(EmployeeServiceRecord::class);
+        return $this->hasOne(EmployeeServiceRecord::class);
+    }
+    public function personnelActions()
+    {
+        return $this->hasMany(PersonnelAction::class);
     }
 
     /** --- Accessors --- */
@@ -118,7 +122,7 @@ class Employee extends Model
     {
         $disk = Storage::disk('public');
         $path = 'employees/' . $this->profile_image;
-        
+
         if ($this->profile_image && $disk->exists($path)) {
             return '/storage/' . $path;
         }
@@ -138,12 +142,12 @@ class Employee extends Model
         if ($this->relationLoaded('experiences')) {
             foreach ($this->experiences as $experience) {
                 // Since we cast dates in EmployeeExperience, these are already Carbon or null
-                $start = $experience->from_date; 
-                
+                $start = $experience->from_date;
+
                 if (!$start) continue; // Skip if start date is missing
 
-                $end = $experience->is_current 
-                    ? Carbon::now() 
+                $end = $experience->is_current
+                    ? Carbon::now()
                     : ($experience->to_date ?? $start);
 
                 $totalDays += $start->diffInDays($end);

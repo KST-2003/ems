@@ -5,24 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EmployeeExperience extends Model
+class PersonnelAction extends Model
 {
     use HasFactory;
 
+    // ဝန်ထမ်းဆိုင်ရာ ဆောင်ရွက်ချက်များ - Template B (big bottom table)
     protected $fillable = [
         'employee_id',
+        'type', // enum - recruit, promote, demote, transfer, punishment, partnership
         'position',
         'department',
-        'from_date',
-        'to_date',
-        'is_current', 
         'location',
+        'start_date',
+        'end_date',
+        'reason',
+        'remark',
     ];
 
     protected $casts = [
-        'from_date' => 'date',
-        'to_date' => 'date',
-        'is_current' => 'boolean',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function employee()

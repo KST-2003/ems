@@ -15,7 +15,7 @@ class CreateLeaveTypesTable extends Migration
     {
         Schema::create('leave_types', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique(); // e.g., Annual, Sick, Maternity
+            $table->string('name')->nullable()->unique(); // e.g., Annual, Sick, Maternity
             $table->text('description')->nullable();
             $table->integer('default_days')->nullable(); // Default allowed days for this leave type
             $table->timestamps();

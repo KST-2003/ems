@@ -16,7 +16,7 @@ class CreateEmployeeExperiencesTable extends Migration
         Schema::create('employee_experiences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('company_name')->nullable();
+            $table->string('company_name')->nullable();//deletec
             $table->string('position')->nullable();
             $table->string('department')->nullable();
             $table->date('from_date')->nullable();

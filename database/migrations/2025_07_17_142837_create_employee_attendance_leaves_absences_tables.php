@@ -11,7 +11,7 @@ class CreateEmployeeAttendanceLeavesAbsencesTables extends Migration
         Schema::create('employee_attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->date('date');
+            $table->date('date')->nullable();
             $table->boolean('present')->default(false);
             $table->timestamps();
         });
@@ -20,8 +20,8 @@ class CreateEmployeeAttendanceLeavesAbsencesTables extends Migration
             $table->id();
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->foreignId('leave_type_id')->constrained('leave_types')->onDelete('cascade');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->text('reason')->nullable();
             $table->string('status')->default('pending'); // pending, approved, rejected
             $table->timestamps();
@@ -30,8 +30,8 @@ class CreateEmployeeAttendanceLeavesAbsencesTables extends Migration
         Schema::create('employee_absences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->string('reason')->nullable();
             $table->string('remark')->nullable();
             $table->timestamps();

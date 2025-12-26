@@ -11,13 +11,15 @@ class EmployeeServiceRecord extends Model
 
     protected $fillable = [
         'employee_id',
-        'status_type', // ENUM: e.g., 'permanent_appointment', 'transfer', 'dismissal', 'other'
-        'recruited_date', // The date the status change took effect
-        'remark', // Additional details or context
+        'grade', // junior, senior, selection, higher
+        'recruited_date', 
+        'remark', 
     ];
 
     // Cast the date field
-    protected $casts = ['recruited_date'];
+    protected $casts = [
+        'recruited_date' => 'date',
+    ];
 
     public function employee()
     {

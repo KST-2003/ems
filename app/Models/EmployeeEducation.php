@@ -13,7 +13,7 @@ class EmployeeEducation extends Model
         'employee_id',
         'type', // ENUM: 'school', 'uni', 'other'
         'institution_name',
-        'degree_certificate',
+        'highest_certificate',
         'field_of_study',
         'date', // Graduation or completion date
         'remark',

@@ -19,7 +19,10 @@ class EmployeeTraining extends Model
     ];
 
     // Cast dates automatically
-    protected $casts = ['start_date', 'end_date'];
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+    ];
 
     public function employee()
     {

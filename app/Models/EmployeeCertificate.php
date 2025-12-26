@@ -21,7 +21,9 @@ class EmployeeCertificate extends Model
 
     protected $appends = ['file_url'];
 
-    protected $casts = ['issue_date'];
+    protected $casts = [
+        'issue_date' => 'date',
+    ];
 
     public function employee()
     {

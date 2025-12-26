@@ -16,7 +16,7 @@ class CreateEmployeeCertificatesTable extends Migration
         Schema::create('employee_certificates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->string('certificate_name');
+            $table->string('certificate_name')->nullable();
             $table->date('issue_date')->nullable();
             $table->string('issuer')->nullable();
             $table->text('description')->nullable();
