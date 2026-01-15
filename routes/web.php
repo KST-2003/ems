@@ -8,6 +8,11 @@ use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\EmployeePrintController;
 
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
+
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
