@@ -85,6 +85,7 @@ return [
     'view_current_file' => 'လက်ရှိဖိုင်ကြည့်ရန်',
     'position' => 'ရာထူး',
     'is_current'=> 'လက်ရှိတိုင်',
+    'current'=> 'လက်ရှိတိုင်',
     'file' => 'ဖိုင်ထည့်ရန်',
     'download' => 'ဒေါင်းလုပ်ဆွဲရန်',
     'no_attachment' => 'ဖိုင်မရှိပါ',

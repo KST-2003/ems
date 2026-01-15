@@ -14,9 +14,12 @@
             </a>
             <ul id="employee-nav" class="nav-content collapse">
                 <li><a href="{{ route('employees.index') }}"><i class="bi bi-circle"></i><span>Employees</span></a></li>
+                {{-- <li><a href="{{ route('emp_exp.index') }}"><i class="bi bi-circle"></i><span>Employees Work Experiences</span></a></li> --}}
                 <li><a href="{{ route('attendances.index') }}"><i class="bi bi-circle"></i><span>Attendance</span></a>
                 </li>
                 <li><a href="{{ route('leaves.index') }}"><i class="bi bi-circle"></i><span>Leaves</span></a></li>
+                {{-- <li><a href="{{ route('leaves.calendar') }}"><i class="bi bi-circle"></i><span>Leaves</span></a></li> --}}
+                <li><a href="{{ route('leave-types.index') }}"><i class="bi bi-circle"></i><span>Leaves Type</span></a></li>
                 <li><a href="{{ route('recruitments.index') }}"><i
                             class="bi bi-circle"></i><span>Recruitments</span></a></li>
             </ul>

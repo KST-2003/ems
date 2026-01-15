@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
         $this->call(RoleAndPermissionSeeder::class);
+        $this->call(LeaveTypeSeeder::class);
+        $this->call(EmployeeSeeder::class);
 
         // You now have 4 users in your database with the password password.
 

@@ -12,6 +12,7 @@ class LeaveType extends Model
         'name',
         'description',
         'default_days',
+        'color',
     ];
 
     public function leaves()

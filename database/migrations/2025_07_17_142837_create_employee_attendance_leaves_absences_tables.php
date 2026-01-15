@@ -22,8 +22,9 @@ class CreateEmployeeAttendanceLeavesAbsencesTables extends Migration
             $table->foreignId('leave_type_id')->constrained('leave_types')->onDelete('cascade');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->string('total_days')->nullable();
             $table->text('reason')->nullable();
-            $table->string('status')->default('pending'); // pending, approved, rejected
+            $table->enum('status', ['ongoing', 'done'])->default('ongoing');
             $table->timestamps();
         });
 

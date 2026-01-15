@@ -35,7 +35,7 @@ class CreateEmployeesTable extends Migration
             
             // Address
             $table->text('current_address')->nullable();
-            $table->text('permenant_address')->nullable();
+            $table->text('permanent_address')->nullable();
             
             // Job Details
             $table->string('current_position')->nullable();
