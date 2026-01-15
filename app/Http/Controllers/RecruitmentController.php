@@ -18,6 +18,11 @@ class RecruitmentController extends Controller
         $employees = Employee::all();
         return view('recruitments.index', compact('employees'));
     }
+    public function create()
+    {
+        // This returns the view you created for adding new applicants
+        return view('recruitments.create');
+    }
 
     /**
      * AJAX data for DataTables.
