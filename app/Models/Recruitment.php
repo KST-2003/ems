@@ -13,10 +13,15 @@ class Recruitment extends Model
     protected $fillable = [
         'employee_id',
         'name',
-        'email',
-        'position',
+        'dob',
+        'nrc',
+        'position_applied',
+        'nationality',
+        'religion',
+        'father_name',
+        'mother_name',
+        'blood_type',
         'status',
-        'resume',
         'resume_file_path',
     ];
 
@@ -27,11 +32,16 @@ class Recruitment extends Model
         return $this->belongsTo(Employee::class);
     }
 
+    /**
+     * Helper to get the full URL of the resume photo
+     */
     public function getResumeFileUrlAttribute()
     {
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk('public');
-        $path = 'recruitments/' . $this->resume_file_path;
-        return $this->resume_file_path && $disk->exists($path) ? '/storage/' . $path : null;
+        if (!$this->resume_file_path) {
+            return null;
+        }
+
+        // Using asset() ensures the URL works in both local and production environments
+        return asset('storage/' . $this->resume_file_path);
     }
 }

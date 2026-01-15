@@ -188,10 +188,10 @@
                             </div>
 
                             <div class="form-group row mb-3">
-                                <label class="col-sm-3 col-form-label">{{ __('messages.permenant_address') }}</label>
+                                <label class="col-sm-3 col-form-label">{{ __('messages.permanent_address') }}</label>
                                 <div class="col-sm-9">
-                                    <textarea name="permenant_address" class="form-control @error('permenant_address') is-invalid @enderror">{{ old('permenant_address', $employee->permenant_address) }}</textarea>
-                                    @error('permenant_address') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                                    <textarea name="permanent_address" class="form-control @error('permanent_address') is-invalid @enderror">{{ old('permanent_address', $employee->permanent_address) }}</textarea>
+                                    @error('permanent_address') <span class="invalid-feedback">{{ $message }}</span> @enderror
                                 </div>
                             </div>
 

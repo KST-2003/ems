@@ -97,8 +97,8 @@
                                 <dt class="col-sm-4">{{ __('messages.current_address') }}</dt>
                                 <dd class="col-sm-8">{{ $employee->current_address ?? '-' }}</dd>
 
-                                <dt class="col-sm-4">{{ __('messages.permenant_address') }}</dt>
-                                <dd class="col-sm-8">{{ $employee->permenant_address ?? '-' }}</dd>
+                                <dt class="col-sm-4">{{ __('messages.permanent_address') }}</dt>
+                                <dd class="col-sm-8">{{ $employee->permanent_address ?? '-' }}</dd>
 
                                 <dt class="col-sm-4">{{ __('messages.current_position') }}</dt>
                                 <dd class="col-sm-8">{{ $employee->current_position ?? '-' }}</dd>

@@ -117,7 +117,7 @@
                 <th colspan="3">လက်ရှိနေရပ်</th>
             </tr>
             <tr>
-                <td>{{ $employee->permenant_address ?? '-' }}</td>
+                <td>{{ $employee->permanent_address ?? '-' }}</td>
                 <td colspan="3">{{ $employee->current_address ?? '-' }}</td>
             </tr>
         </thead>

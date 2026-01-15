@@ -20,7 +20,7 @@ return [
     'spouse_name' => 'အိမ်ထောင်ဖက်အမည်',
     'spouse_job' => 'အိမ်ထောက်ဖက် အလုပ်ကိုင်',
     'spouse_job_place' => 'အိမ်ထောက်ဖက် အလုပ်ကိုင်နေရာ',
-    'permenant_address' => 'အမြဲတမ်းနေထိုင်ရာ လိပ်စာ',
+    'permanent_address' => 'အမြဲတမ်းနေထိုင်ရာ လိပ်စာ',
     'current_address' => 'လက်ရှိ နေရာ',
     'lang_proficiency' => "ကျွမ်းကျင်သော ဘာသာစကားများ",
     'children' => 'သားသမီး',

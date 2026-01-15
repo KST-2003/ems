@@ -386,7 +386,7 @@ class EmployeeController extends Controller
             'spouse_job' => 'nullable|string',
             'spouse_job_place' => 'nullable|string',
             'current_address' => 'nullable|string',
-            'permenant_address' => 'nullable|string',
+            'permanent_address' => 'nullable|string',
             'current_position' => 'nullable|string',
             'salary' => 'nullable|string',
             'department' => 'nullable|string',

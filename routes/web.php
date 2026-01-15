@@ -20,7 +20,7 @@ Route::middleware('auth')->group(function () {
     // Employees
     // IMPORTANT: Define this BEFORE the resource route to prevent 'list' being treated as an ID.
     Route::get('employees/list', [EmployeeController::class, 'list'])->name('employees.list');
-    
+
     Route::get('employees', [EmployeeController::class, 'webIndex'])->name('employees.index');
     Route::resource('employees', EmployeeController::class)->except(['index']);
 
@@ -57,5 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('leave-types', LeaveTypeController::class);
 
     // Recruitment
+    Route::get('recruitments/list', [RecruitmentController::class, 'list'])->name('recruitments.list');
+    Route::get('recruitments/download/{recruitment}', [RecruitmentController::class, 'downloadResume'])->name('recruitments.download');
+    Route::patch('recruitments/{recruitment}/status', [RecruitmentController::class, 'updateStatus'])->name('recruitments.updateStatus');
     Route::resource('recruitments', RecruitmentController::class);
 });

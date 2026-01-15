@@ -28,7 +28,7 @@ class Employee extends Model
         'spouse_job',
         'spouse_job_place',
         'current_address',
-        'permenant_address',
+        'permanent_address',
         'current_position',
         'salary',
         'department',

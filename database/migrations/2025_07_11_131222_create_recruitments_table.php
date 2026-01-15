@@ -15,12 +15,19 @@ class CreateRecruitmentsTable extends Migration
     {
         Schema::create('recruitments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('name')->nullable();
-            $table->string('email')->unique();
-            $table->string('position');
-            $table->string('status')->default('applied');
-            $table->text('resume')->nullable();
+            // Unique ensures one-to-one relationship
+            $table->foreignId('employee_id')->nullable()->unique()->constrained()->onDelete('set null');
+            $table->string('name');
+            $table->date('dob')->nullable(); // Changed to date type
+            $table->string('nrc')->nullable();
+            $table->string('position_applied')->nullable();
+            $table->string('nationality')->nullable();
+            $table->string('religion')->nullable();
+            $table->string('father_name')->nullable();
+            $table->string('mother_name')->nullable();
+            $table->string('blood_type')->nullable();
+            // Use enum for status control
+            $table->enum('status', ['pending', 'declined', 'accepted'])->default('pending');
             $table->string('resume_file_path')->nullable();
             $table->timestamps();
         });

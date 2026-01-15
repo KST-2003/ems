@@ -146,7 +146,7 @@
                     -
                 @endif
             </li>
-            <li>လိပ်စာ — {{ $employee->current_address ?? ($employee->permenant_address ?? '-') }}</li>
+            <li>လိပ်စာ — {{ $employee->current_address ?? ($employee->permanent_address ?? '-') }}</li>
             <li>ပညာအရည်အချင်း —
                 @if ($employee->educations->isNotEmpty())
                     @foreach ($employee->educations as $edu)
