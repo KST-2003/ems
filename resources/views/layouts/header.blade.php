@@ -1,10 +1,11 @@
 <header id="header" class="header fixed-top d-flex align-items-center" style="background-color:#f1f2f4">
-  <div class="d-flex align-items-center ">
+  <div class="d-flex align-items-center">
+    <div class="d-flex align-items-center py-5 px-3"> 
     <a href="" class="logo d-flex align-items-center">
-      <img src="{{asset('assets/img/logo.png')}}" alt="">
-      <span class="d-none d-lg-block">{{config('app.name')}}</span>
+      <img src="{{asset('assets/img/mon-state-logo.png')}}" alt="" style="max-height: 60px;">
+      <span class="d-none d-lg-block ms-3">{{config('app.name')}}</span>
     </a>
-    <i class="bi bi-list toggle-sidebar-btn me-auto"></i>
+    <i class="bi bi-list toggle-sidebar-btn ms-auto"></i> </div>
   </div><!-- End Logo -->
 
   <div class="search-bar">
