@@ -196,7 +196,7 @@ class LeaveController extends Controller
         $absentDays = EmployeeLeave::where('employee_id', $employeeId)->where('status', 'done')
             ->where('start_date', 'like', "$month%")->sum('total_days');
 
-        \App\Models\AttendanceMonthlyRollup::updateOrCreate(
+        AttendanceMonthlyRollup::updateOrCreate(
             ['employee_id' => $employeeId, 'month' => $month],
             ['total_absent_days' => $absentDays]
         );
@@ -221,10 +221,20 @@ class LeaveController extends Controller
         ]));
     }
 
-    public function rollupReport(Request $request)
+   public function rollupReport(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
-        $reports = AttendanceMonthlyRollup::with('employee')->where('month', $month)->get();
-        return view('leaves.reports', compact('reports', 'month'));
+        $departments = Employee::distinct()->pluck('department'); // Added this
+        
+        $reports = AttendanceMonthlyRollup::with('employee')
+            ->where('month', $month)
+            ->when($request->filled('department'), function($q) use ($request) {
+                $q->whereHas('employee', function($sq) use ($request) {
+                    $sq->where('department', $request->department);
+                });
+            })
+            ->get();
+
+        return view('leaves.reports', compact('reports', 'month', 'departments'));
     }
 }
