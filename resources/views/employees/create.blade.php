@@ -98,7 +98,7 @@
                             <div class="form-group row mb-3">
                                 <label class="col-sm-3 col-form-label">{{ __('messages.mm_dob') }}</label>
                                 <div class="col-sm-9">
-                                    <input type="date" name="mm_dob" class="form-control @error('mm_dob') is-invalid @enderror" value="{{ old('mm_dob') }}">
+                                    <input type="text" name="mm_dob" class="form-control @error('mm_dob') is-invalid @enderror" value="{{ old('mm_dob') }}">
                                     @error('mm_dob') <span class="invalid-feedback">{{ $message }}</span> @enderror
                                 </div>
                             </div>

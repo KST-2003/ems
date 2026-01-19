@@ -15,14 +15,16 @@ class LeaveTypeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name',
             'default_days' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
-            'color' => 'nullable|string|max:7'
+            'color' => 'nullable|string|max:7',
+            'max_continuous_days' => 'nullable|integer|min:0',
+            'sandwich_rule' => 'nullable|boolean'
         ]);
 
-        LeaveType::create($request->all());
+        LeaveType::create($validated);
 
         return redirect()->route('leave-types.index')
                          ->with('success', 'Leave Type created successfully.');
@@ -30,14 +32,19 @@ class LeaveTypeController extends Controller
 
     public function update(Request $request, LeaveType $leaveType)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name,' . $leaveType->id,
             'default_days' => 'nullable|integer|min:0',
             'description' => 'nullable|string',
-            'color' => 'nullable|string|max:7'
+            'color' => 'nullable|string|max:7',
+            'max_continuous_days' => 'nullable|integer|min:0',
+            'sandwich_rule' => 'nullable|boolean'
         ]);
 
-        $leaveType->update($request->all());
+        // Explicitly handle checkbox logic
+        $validated['sandwich_rule'] = $request->has('sandwich_rule');
+
+        $leaveType->update($validated);
 
         return redirect()->route('leave-types.index')
                          ->with('success', 'Leave Type updated successfully.');
@@ -45,7 +52,7 @@ class LeaveTypeController extends Controller
 
     public function destroy(LeaveType $leaveType)
     {
-        // Optional: Check if used in employee_leaves before deleting
+        // Check if used in employee_leaves before deleting
         if($leaveType->leaves()->count() > 0) {
             return redirect()->back()->with('error', 'Cannot delete: This leave type is currently used by employees.');
         }

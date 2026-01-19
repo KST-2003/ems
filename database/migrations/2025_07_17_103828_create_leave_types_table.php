@@ -17,7 +17,12 @@ class CreateLeaveTypesTable extends Migration
             $table->id();
             $table->string('name')->nullable()->unique();
             $table->text('description')->nullable();
-            $table->integer('default_days')->nullable(); // Default allowed days for this leave type
+            $table->integer('default_days')->nullable();
+
+            // ADD THESE NEW RULE COLUMNS:
+            $table->integer('max_continuous_days')->nullable(); //
+            $table->boolean('sandwich_rule')->default(false);  //
+
             $table->timestamps();
         });
     }

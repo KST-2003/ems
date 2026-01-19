@@ -12,15 +12,12 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
 
     // Employees
-    // IMPORTANT: Define this BEFORE the resource route to prevent 'list' being treated as an ID.
     Route::get('employees/list', [EmployeeController::class, 'list'])->name('employees.list');
-
     Route::get('employees', [EmployeeController::class, 'webIndex'])->name('employees.index');
     Route::resource('employees', EmployeeController::class)->except(['index']);
 
@@ -31,34 +28,31 @@ Route::middleware('auth')->group(function () {
         Route::get('template-b', [EmployeePrintController::class, 'templateB'])->name('template-b');
     });
 
-    // Attendance
+    // Attendance - Added Bulk Store for 200+ employees
+    Route::post('attendances/bulk', [AttendanceController::class, 'bulkStore'])->name('attendances.bulk-store');
     Route::resource('attendances', AttendanceController::class);
 
-    // ────────────────────────────────────────────────────────────────
-    // Leaves - IMPORTANT ROUTES (FORCE STANDARD {leave} PARAMETER)
-    // ────────────────────────────────────────────────────────────────
-    Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
+    // Leaves
     Route::get('/leaves/datatable', [LeaveController::class, 'datatable'])->name('leaves.datatable');
     Route::get('/leaves/calendar-events', [LeaveController::class, 'calendarEvents'])->name('leaves.calendar-events');
+    Route::get('/leaves/reports', [LeaveController::class, 'rollupReport'])->name('leaves.reports');
+    // Leave Allocations - FIX: Added missing routes
+    Route::get('/leaves/allocations', [LeaveController::class, 'allocationIndex'])->name('leave-allocations.index');
+    Route::post('/leaves/allocations', [LeaveController::class, 'allocationStore'])->name('leave-allocations.store');
 
-    // Explicitly define CRUD with correct {leave} parameter (overrides any weird cache)
-    Route::get('leaves/create', [LeaveController::class, 'create'])->name('leaves.create');
-    Route::post('leaves', [LeaveController::class, 'store'])->name('leaves.store');
-    Route::get('leaves/{leave}', [LeaveController::class, 'show'])->name('leaves.show');
-    Route::get('leaves/{leave}/edit', [LeaveController::class, 'edit'])->name('leaves.edit');
-    Route::put('leaves/{leave}', [LeaveController::class, 'update'])->name('leaves.update');
-    Route::patch('leaves/{leave}', [LeaveController::class, 'update'])->name('leaves.update');
-    Route::delete('leaves/{leave}', [LeaveController::class, 'destroy'])->name('leaves.destroy');
-
-
-
+    Route::resource('leaves', LeaveController::class)->parameters([
+        'leaves' => 'leave'
+    ]);
 
     // Leave types
     Route::resource('leave-types', LeaveTypeController::class);
+
 
     // Recruitment
     Route::get('recruitments/list', [RecruitmentController::class, 'list'])->name('recruitments.list');
     Route::get('recruitments/download/{recruitment}', [RecruitmentController::class, 'downloadResume'])->name('recruitments.download');
     Route::patch('recruitments/{recruitment}/status', [RecruitmentController::class, 'updateStatus'])->name('recruitments.updateStatus');
     Route::resource('recruitments', RecruitmentController::class);
+
+    Route::get('security', [EmployeeController::class, 'securityIndex'])->name('security.index');
 });

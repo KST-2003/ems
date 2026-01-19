@@ -17,7 +17,7 @@ class CreateEmployeesTable extends Migration
             $table->string('profile_image')->nullable();
             
             // New Date Fields
-            $table->date('mm_dob')->nullable(); // Myanmar DOB
+            $table->string('mm_dob')->nullable(); // Myanmar DOB
             $table->date('eng_dob')->nullable(); // English DOB
             
             // Personal Details

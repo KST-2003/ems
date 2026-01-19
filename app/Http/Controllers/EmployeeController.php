@@ -375,7 +375,7 @@ class EmployeeController extends Controller
             'phone' => 'nullable|string|max:20',
             'gender' => 'nullable|in:male,female',
             'profile_image' => 'nullable|image|mimes:jpg,png,jpeg|max:10240',
-            'mm_dob' => 'nullable|date',
+            'mm_dob' => 'nullable|string',
             'eng_dob' => 'nullable|date',
             'nationality' => 'nullable|string',
             'religion' => 'nullable|string',
@@ -475,5 +475,19 @@ class EmployeeController extends Controller
             'criminal_records.*.file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:10240',
             'criminal_records.*.existing_file' => 'nullable|string',
         ]);
+    }
+    public function securityIndex()
+    {
+        // Fetch all employees to assign roles to them
+        $employees = Employee::select('id', 'name', 'employee_id', 'department')->get();
+        
+        // Define system roles for your 200+ employee organization
+        $roles = [
+            'Admin' => 'Full access to all modules and BOD reports.',
+            'Manager' => 'Can manage department attendance and leaves.',
+            'Staff' => 'Standard access to personal records.'
+        ];
+
+        return view('employees.security', compact('employees', 'roles'));
     }
 }

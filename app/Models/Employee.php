@@ -77,10 +77,10 @@ class Employee extends Model
         return $this->hasMany(EmployeeLeave::class);
     }
 
-    public function absences()
-    {
-        return $this->hasMany(EmployeeAbsence::class);
-    }
+    // public function absences()
+    // {
+    //     return $this->hasMany(EmployeeAbsence::class);
+    // }
 
     public function recruitments()
     {
@@ -114,6 +114,11 @@ class Employee extends Model
     public function personnelActions()
     {
         return $this->hasMany(PersonnelAction::class);
+    }
+
+    public function allocations()
+    {
+        return $this->hasMany(EmployeeLeaveAllocation::class);
     }
 
     /** --- Accessors --- */
