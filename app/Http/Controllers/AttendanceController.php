@@ -25,6 +25,8 @@ class AttendanceController extends Controller
         $employees = $query->get();
 
         $existingAttendance = EmployeeAttendance::where('date', $date)->pluck('status', 'employee_id');
+        
+        // Disable buttons if employee is on official leave
         $onLeaveIds = EmployeeLeave::whereDate('start_date', '<=', $date)
             ->whereDate('end_date', '>=', $date)
             ->pluck('employee_id')
@@ -55,7 +57,7 @@ class AttendanceController extends Controller
     }
 
     /**
-     * New endpoint for Individual Employee Calendar View
+     * Endpoint for Individual Employee Calendar View (Leaves + Absences)
      */
     public function employeeEvents(Request $request, $employeeId)
     {
@@ -88,9 +90,10 @@ class AttendanceController extends Controller
             $events[] = [
                 'title' => $leave->leaveType->name,
                 'start' => $leave->start_date,
-                'end' => Carbon::parse($leave->end_date)->addDay()->toDateString(),
+                'end' => $leave->end_date ? Carbon::parse($leave->end_date)->addDay()->toDateString() : null,
                 'color' => $leave->leaveType->color ?? '#3788d8',
-                'allDay' => true
+                'allDay' => true,
+                'extendedProps' => ['reason' => $leave->reason]
             ];
         }
 

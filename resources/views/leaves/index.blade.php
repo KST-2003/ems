@@ -11,7 +11,7 @@
     </div>
 
     {{-- Tabs --}}
-    <ul class="nav nav-tabs mb-3 shadow-sm" id="leaveTabs" role="tablist" style="background: #fff; border-radius: 8px 8px 0 0;">
+    <ul class="nav nav-tabs mb-3 shadow-sm" id="leaveTabs" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendarView">Calendar View</button>
         </li>
@@ -51,12 +51,12 @@
                             <select id="individual-emp-selector" class="form-select shadow-sm">
                                 <option value="">-- Search Employee --</option>
                                 @foreach($employees as $emp)
-                                    <option value="{{ $emp->id }}">{{ $emp->name }} </option>
+                                    <option value="{{ $emp->id }}">{{ $emp->name }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-                    <div id="individual-calendar"></div>
+                    <div id="individual-calendar"></div> {{-- Use this ID in JS --}}
                 </div>
             </div>
         </div>
@@ -72,6 +72,7 @@
                             <th>Start</th>
                             <th>End</th>
                             <th>Duration</th>
+                            <th>Remaining Balance</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -123,13 +124,11 @@
 <script>
 $(document).ready(function() {
     
-    // Configuration common to both calendars
     const commonCalOptions = {
         initialView: 'dayGridMonth',
-        displayEventTime: false, // FIX: Removes the "7a" time prefix
-        dayMaxEvents: 3,         // FIX: Shows max 3 names, then "+more" button
+        displayEventTime: false, 
+        dayMaxEvents: 3,         
         moreLinkClick: function(info) {
-            // FIX: Custom Alert for See More
             let dateStr = info.date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             let list = info.allSegs.map(s => "• " + s.footprint.eventDef.title).join("\n");
             alert("Attendance/Leaves for " + dateStr + ":\n\n" + list);
@@ -144,7 +143,6 @@ $(document).ready(function() {
     var mainCalEl = document.getElementById('main-calendar');
     var mainCalendar = new FullCalendar.Calendar(mainCalEl, {
         ...commonCalOptions,
-        // SYNC: 'jumpDate' in toolbar must match customButtons key
         headerToolbar: { left: 'prev,next today jumpDate', center: 'title', right: '' }, 
         customButtons: {
             jumpDate: { 
@@ -156,13 +154,12 @@ $(document).ready(function() {
             $.ajax({
                 url: "{{ route('leaves.calendar-events') }}",
                 data: { start: info.startStr, end: info.endStr, department: $('#filter-dept-main').val() },
-                success: function(data) { success(data); },
-                error: function() { failure(); }
+                success: function(data) { success(data); }
             });
         }
     });
 
-    // 2. Individual Employee Calendar
+    // 2. Individual Employee Calendar (The Missing Data Fix)
     var indCalEl = document.getElementById('individual-calendar');
     var indCalendar = new FullCalendar.Calendar(indCalEl, {
         ...commonCalOptions,
@@ -170,11 +167,12 @@ $(document).ready(function() {
         events: []
     });
 
-    // Handle Employee Selection
+    // Handle Employee Selection for Individual View
     $('#individual-emp-selector').change(function() {
         var empId = $(this).val();
         if(empId) {
             indCalendar.removeAllEventSources();
+            // Pointing to the endpoint we created in the AttendanceController
             indCalendar.addEventSource(`/attendances/employee-events/${empId}`);
         }
     });
@@ -186,31 +184,44 @@ $(document).ready(function() {
         $('#jumpDateModal').modal('hide');
     });
 
-    // Tab Resize Fix
-    $('#calendar-tab').on('shown.bs.tab', function() { mainCalendar.render(); mainCalendar.updateSize(); });
-    $('#employee-tab').on('shown.bs.tab', function() { indCalendar.render(); indCalendar.updateSize(); });
+    // FIX: Force render when switching to hidden tabs
+    $('#calendar-tab').on('shown.bs.tab', function() { 
+        mainCalendar.render(); 
+        mainCalendar.updateSize(); 
+    });
+    $('#employee-tab').on('shown.bs.tab', function() { 
+        indCalendar.render(); 
+        indCalendar.updateSize(); 
+    });
 
     mainCalendar.render();
 
-    // 3. DataTable
+    // 3. DataTable Initialization
     $('#leavesTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: "{{ route('leaves.datatable') }}",
+        ajax: {
+            url: "{{ route('leaves.datatable') }}",
+            data: function(d) {
+                d.department = $('#filter-dept-main').val();
+            }
+        },
         columns: [
-            {data: 'employee_name', name: 'employees.name'},
-            {data: 'leave_type_name', name: 'leave_types.name'},
+            {data: 'employee_name', name: 'employee_name'},
+            {data: 'leave_type_name', name: 'leave_type_name'},
             {data: 'start_date', name: 'start_date'},
             {data: 'end_date', name: 'end_date'},
             {data: 'duration', name: 'duration'},
+            {data: 'remaining_days', name: 'remaining_days', orderable: false, searchable: false},
             {data: 'status', name: 'status'},
-            {data: 'actions', name: 'actions'}
+            {data: 'actions', name: 'actions', orderable: false, searchable: false}
         ]
     });
 
-    // Filter refresh
+    // Sync Department Filter with both Calendar and Table
     $('#filter-dept-main').change(function() {
         mainCalendar.refetchEvents();
+        $('#leavesTable').DataTable().draw();
     });
 });
 </script>

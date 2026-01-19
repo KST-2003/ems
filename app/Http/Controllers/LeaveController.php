@@ -15,13 +15,47 @@ use Illuminate\Support\Facades\DB;
 
 class LeaveController extends Controller
 {
-
+    /**
+     * Display the leave allocation management page.
+     */
     public function allocationIndex()
     {
         $employees = Employee::select('id', 'name', 'employee_id', 'department')->get();
         $leaveTypes = LeaveType::all();
         return view('leaves.allocation', compact('employees', 'leaveTypes'));
     }
+
+    /**
+     * Store or update leave allocations for an employee.
+     */
+    public function allocationStore(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'allocations' => 'required|array',
+        ]);
+
+        $year = now()->year;
+
+        foreach ($request->allocations as $leaveTypeId => $data) {
+            if (isset($data['enabled'])) {
+                EmployeeLeaveAllocation::updateOrCreate(
+                    [
+                        'employee_id' => $request->employee_id,
+                        'leave_type_id' => $leaveTypeId,
+                        'year' => $year
+                    ],
+                    ['max_allowed_days' => $data['max_days']]
+                );
+            }
+        }
+
+        return redirect()->back()->with('success', 'Leave entitlements allocated successfully.');
+    }
+
+    /**
+     * Display the main leaves index.
+     */
     public function index()
     {
         $departments = Employee::select('department')->distinct()->pluck('department');
@@ -30,19 +64,15 @@ class LeaveController extends Controller
         return view('leaves.index', compact('departments', 'leaveTypes', 'employees'));
     }
 
+    /**
+     * Server-side DataTables logic.
+     */
     public function datatable(Request $request)
     {
         try {
             $leaves = EmployeeLeave::query()
                 ->select([
-                    'employee_leaves.id as id',
-                    'employee_leaves.employee_id',
-                    'employee_leaves.leave_type_id',
-                    'employee_leaves.start_date',
-                    'employee_leaves.end_date',
-                    'employee_leaves.total_days',
-                    'employee_leaves.reason',
-                    'employee_leaves.status',
+                    'employee_leaves.*',
                     'employees.name as employee_name',
                     'employees.department as employee_department',
                     'leave_types.name as leave_type_name',
@@ -61,26 +91,34 @@ class LeaveController extends Controller
 
             return DataTables::of($leaves)
                 ->addIndexColumn()
+                ->editColumn('employee_name', function($row) {
+                    $url = route('employees.show', $row->employee_id);
+                    return '<a href="'.$url.'" class="fw-bold text-primary">'.$row->employee_name.'</a>';
+                })
                 ->editColumn('start_date', fn($row) => $row->start_date ? Carbon::parse($row->start_date)->format('d-m-Y') : '-')
                 ->editColumn('end_date', fn($row) => $row->end_date ? Carbon::parse($row->end_date)->format('d-m-Y') : '-')
                 ->addColumn('duration', fn($row) => $row->total_days . ' days')
                 ->addColumn('remaining_days', function ($row) {
+                    $year = Carbon::parse($row->start_date)->year;
+                    
                     $allocation = EmployeeLeaveAllocation::where('employee_id', $row->employee_id)
                         ->where('leave_type_id', $row->leave_type_id)
-                        ->where('year', Carbon::parse($row->start_date)->year)
+                        ->where('year', $year)
                         ->first();
 
                     $maxDays = $allocation ? $allocation->max_allowed_days : ($row->default_days ?? 0);
+                    
+                    // Sum used days ONLY for the specific year of the record and ONLY if status is 'done'
                     $usedDays = EmployeeLeave::where('employee_id', $row->employee_id)
                         ->where('leave_type_id', $row->leave_type_id)
                         ->where('status', 'done')
+                        ->whereYear('start_date', $year)
                         ->sum('total_days');
 
-                    $remaining = $maxDays - $usedDays;
-                    return "<span class='" . ($remaining <= 2 ? 'text-danger fw-bold' : '') . "'>$remaining / $maxDays</span>";
+                    return "$usedDays / $maxDays";
                 })
                 ->addColumn('actions', fn($row) => view('leaves.partials.actions', compact('row'))->render())
-                ->rawColumns(['remaining_days', 'actions'])
+                ->rawColumns(['employee_name', 'remaining_days', 'actions'])
                 ->make(true);
         } catch (\Exception $e) {
             Log::error('DataTables error: ' . $e->getMessage());
@@ -88,6 +126,19 @@ class LeaveController extends Controller
         }
     }
 
+    /**
+     * Show form to create new leave.
+     */
+    public function create()
+    {
+        $employees = Employee::select('id', 'name', 'employee_id')->get();
+        $leaveTypes = LeaveType::all();
+        return view('leaves.create', compact('employees', 'leaveTypes'));
+    }
+
+    /**
+     * Store new leave and calculate duration.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -100,30 +151,88 @@ class LeaveController extends Controller
         ]);
 
         $leaveType = LeaveType::findOrFail($validated['leave_type_id']);
-        $start = Carbon::parse($validated['start_date']);
-        $end = $validated['end_date'] ? Carbon::parse($validated['end_date']) : $start;
-
-        if (EmployeeLeave::where('employee_id', $validated['employee_id'])
-            ->where(fn($q) => $q->whereBetween('start_date', [$start, $end])->orWhereBetween('end_date', [$start, $end]))
-            ->exists()) {
-            return back()->withErrors(['start_date' => 'Overlap detected.']);
-        }
-
-        $totalDays = $leaveType->sandwich_rule ? $start->diffInDays($end) + 1 : $start->diffInDaysFiltered(fn(Carbon $date) => !$date->isWeekend(), $end) + 1;
+        $totalDays = $this->calculateTotalDays($validated['start_date'], $validated['end_date'], $leaveType);
 
         if ($leaveType->max_continuous_days && $totalDays > $leaveType->max_continuous_days) {
-            return back()->withErrors(['end_date' => "Max {$leaveType->max_continuous_days} days allowed."]);
+            return back()->withErrors(['end_date' => "This leave type allows a maximum of {$leaveType->max_continuous_days} continuous days."]);
         }
 
         $leave = EmployeeLeave::create(array_merge($validated, ['total_days' => $totalDays]));
-        $this->updateRollup($validated['employee_id'], $start->format('Y-m'));
+        
+        // Update rollup if marked as 'done'
+        if ($validated['status'] === 'done') {
+            $this->updateRollup($validated['employee_id'], Carbon::parse($validated['start_date'])->format('Y-m'));
+        }
 
-        return redirect()->route('leaves.index')->with('success', 'Leave recorded.');
+        return redirect()->route('leaves.index')->with('success', 'Leave recorded with duration: ' . $totalDays . ' days.');
     }
 
+    public function edit(EmployeeLeave $leave)
+    {
+        $employees = Employee::select('id', 'name', 'employee_id')->get();
+        $leaveTypes = LeaveType::all();
+        return view('leaves.edit', compact('leave', 'employees', 'leaveTypes'));
+    }
+
+    /**
+     * Update leave and RECALCULATE duration.
+     */
+    public function update(Request $request, EmployeeLeave $leave)
+    {
+        $validated = $request->validate([
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'start_date'    => 'required|date',
+            'end_date'      => 'nullable|date|after_or_equal:start_date',
+            'reason'        => 'nullable|string|max:1000',
+            'status'        => 'required|in:ongoing,done',
+        ]);
+
+        $leaveType = LeaveType::findOrFail($validated['leave_type_id']);
+        $totalDays = $this->calculateTotalDays($validated['start_date'], $validated['end_date'], $leaveType);
+
+        $leave->update(array_merge($validated, ['total_days' => $totalDays]));
+        
+        // Refresh rollup calculation
+        $this->updateRollup($leave->employee_id, Carbon::parse($leave->start_date)->format('Y-m'));
+
+        return redirect()->route('leaves.index')->with('success', 'Leave updated. Duration recalculated to: ' . $totalDays . ' days.');
+    }
+
+    /**
+     * Delete leave and refresh rollup.
+     */
+    public function destroy(EmployeeLeave $leave)
+    {
+        $empId = $leave->employee_id;
+        $month = Carbon::parse($leave->start_date)->format('Y-m');
+
+        $leave->delete();
+        $this->updateRollup($empId, $month);
+
+        return redirect()->route('leaves.index')->with('success', 'Leave deleted.');
+    }
+
+    /**
+     * Helper to determine duration based on Policy (Sandwich vs Standard).
+     */
+    private function calculateTotalDays($start, $end, $leaveType)
+    {
+        $startDate = Carbon::parse($start);
+        $endDate = $end ? Carbon::parse($end) : $startDate;
+
+        if ($leaveType->sandwich_rule) {
+            return $startDate->diffInDays($endDate) + 1;
+        }
+
+        return $startDate->diffInDaysFiltered(fn(Carbon $date) => !$date->isWeekend(), $endDate) + 1;
+    }
+
+    /**
+     * Update the BOD Monthly Report stats.
+     */
     private function updateRollup($employeeId, $month)
     {
-        if (!$employeeId) return; // Safety check
+        if (!$employeeId) return;
 
         $absentDays = EmployeeLeave::where('employee_id', $employeeId)
             ->where('status', 'done')
@@ -136,41 +245,39 @@ class LeaveController extends Controller
         );
     }
 
-    public function edit(EmployeeLeave $leave)
+    /**
+     * FullCalendar JSON endpoint.
+     */
+    public function calendarEvents(Request $request)
     {
-        $employees = Employee::select('id', 'name', 'employee_id')->get();
-        $leaveTypes = LeaveType::all();
-        return view('leaves.edit', compact('leave', 'employees', 'leaveTypes'));
+        $start = Carbon::parse($request->input('start'));
+        $end = Carbon::parse($request->input('end'));
+
+        $query = EmployeeLeave::with(['leaveType', 'employee'])
+            ->whereBetween('start_date', [$start, $end]);
+
+        if ($request->filled('department')) {
+            $query->whereHas('employee', fn($q) => $q->where('department', $request->department));
+        }
+
+        return response()->json($query->get()->map(function ($leave) {
+            return [
+                'id' => $leave->id,
+                'title' => $leave->employee->name,
+                'start' => $leave->start_date,
+                'end' => $leave->end_date ? Carbon::parse($leave->end_date)->addDay()->toDateString() : null,
+                'color' => $leave->leaveType->color ?? '#3788d8',
+                'extendedProps' => [
+                    'reason' => $leave->reason ?? 'No remarks',
+                    'type' => $leave->leaveType->name
+                ]
+            ];
+        }));
     }
 
-    public function update(Request $request, EmployeeLeave $leave)
-    {
-        $validated = $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
-            'start_date'    => 'required|date',
-            'end_date'      => 'nullable|date|after_or_equal:start_date',
-            'reason'        => 'nullable|string|max:1000',
-            'status'        => 'required|in:ongoing,done',
-        ]);
-
-        $leave->update($validated);
-        $this->updateRollup($leave->employee_id, Carbon::parse($leave->start_date)->format('Y-m'));
-
-        return redirect()->route('leaves.index')->with('success', 'Leave updated.');
-    }
-
-    public function destroy(EmployeeLeave $leave)
-    {
-        // Capture values BEFORE deletion to avoid Null Integrity violation
-        $empId = $leave->employee_id;
-        $month = Carbon::parse($leave->start_date)->format('Y-m');
-
-        $leave->delete();
-        $this->updateRollup($empId, $month);
-
-        return redirect()->route('leaves.index')->with('success', 'Leave deleted.');
-    }
-
+    /**
+     * BOD Monthly Rollup Report.
+     */
     public function rollupReport(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
