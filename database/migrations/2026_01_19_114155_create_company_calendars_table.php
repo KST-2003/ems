@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateCompanyCalendarsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('company_calendars', function (Blueprint $table) {
+            $table->id();
+            $table->date('date')->unique();
+            $table->string('name'); // e.g., "Songkran", "Staff Training"
+            $table->enum('type', ['holiday', 'close_exception', 'open_exception']);
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('company_calendars');
+    }
+}

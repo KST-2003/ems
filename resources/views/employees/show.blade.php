@@ -69,7 +69,7 @@
 
                                 <dt class="col-sm-4">{{ __('messages.mm_dob') }} / {{ __('messages.eng_dob') }}</dt>
                                 <dd class="col-sm-8">
-                                    {{ $employee->mm_dob ? $employee->mm_dob->format('Y-m-d') : '-' }} /
+                                    {{ $employee->mm_dob ?? '-' }}  /
                                     {{ $employee->eng_dob ? $employee->eng_dob->format('Y-m-d') : '-' }}
                                 </dd>
 

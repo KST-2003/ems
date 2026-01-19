@@ -32,6 +32,10 @@ Route::middleware('auth')->group(function () {
     Route::post('attendances/bulk', [AttendanceController::class, 'bulkStore'])->name('attendances.bulk-store');
     Route::resource('attendances', AttendanceController::class);
 
+    //Employees Individual Calendar route
+    Route::get('/attendances/employee-events/{employee}', [AttendanceController::class, 'employeeEvents'])
+        ->name('attendances.employee-events');
+
     // Leaves
     Route::get('/leaves/datatable', [LeaveController::class, 'datatable'])->name('leaves.datatable');
     Route::get('/leaves/calendar-events', [LeaveController::class, 'calendarEvents'])->name('leaves.calendar-events');
@@ -47,6 +51,10 @@ Route::middleware('auth')->group(function () {
     // Leave types
     Route::resource('leave-types', LeaveTypeController::class);
 
+    // Company Calendar Routes
+    Route::get('/calendar/manage', [AttendanceController::class, 'calendarIndex'])->name('calendar.index');
+    Route::post('/calendar/manage', [AttendanceController::class, 'calendarStore'])->name('calendar.store');
+    Route::delete('/calendar/{calendar}', [AttendanceController::class, 'calendarDestroy'])->name('calendar.destroy');
 
     // Recruitment
     Route::get('recruitments/list', [RecruitmentController::class, 'list'])->name('recruitments.list');

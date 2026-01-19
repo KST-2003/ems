@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleAndPermissionSeeder::class);
         $this->call(LeaveTypeSeeder::class);
         $this->call(EmployeeSeeder::class);
+        $this->call(CompanyCalendarSeeder::class);
 
         // You now have 4 users in your database with the password password.
 

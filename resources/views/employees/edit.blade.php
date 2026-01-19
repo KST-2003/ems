@@ -13,7 +13,8 @@
     .delete-entry { margin-top: 28px; }
     .section-header { margin-top: 40px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; }
     .profile-image-preview { max-width: 150px; height: auto; margin-top: 10px; border-radius: 50%; }
-    .existing-file-link { display: block; margin-top: 5px; font-size: 0.9em; }
+    .current-image { max-width: 50px; margin-bottom: 10px; }
+    .img-thumbnail{max-width: 50px; margin-bottom: 10px !important ;}
 </style>
 @endsection
 
@@ -23,6 +24,7 @@
     <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('employees.index') }}">{{ __('messages.employees') }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('employees.show', $employee->id) }}">{{ $employee->name }}</a></li>
             <li class="breadcrumb-item active">{{ __('messages.edit') }}</li>
         </ol>
     </nav>
@@ -33,7 +35,7 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">{{ __('messages.edit_employee') }}: {{ $employee->name }}</h5>
+                    <h5 class="card-title">{{ __('messages.edit_employee') }}</h5>
 
                     @if ($errors->any())
                         <div class="alert alert-danger">
@@ -49,6 +51,24 @@
                         @csrf
                         @method('PUT')
 
+                        <!-- Current Profile Image -->
+                        @if($employee->profile_image)
+                
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">ပရိုဖိုင်ပုံ</label>
+                                <div class="col-sm-9">
+                                    <img src="{{ asset('storage/employees/' . $employee->profile_image) }}" alt="Profile Image" class="current-image img-thumbnail">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="remove_profile_image" id="remove_profile_image" value="1">
+                                        <label class="form-check-label" for="remove_profile_image">
+                                           ပုံဖျက်မည်
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Step 1: Personal Information -->
                         <div class="form-step active" id="step-1">
                             <h6>{{ __('messages.personal_information') }}</h6>
 
@@ -92,9 +112,6 @@
                                 <label class="col-sm-3 col-form-label">{{ __('messages.profile_image') }}</label>
                                 <div class="col-sm-9">
                                     <input type="file" name="profile_image" class="form-control @error('profile_image') is-invalid @enderror" accept="image/*">
-                                    @if($employee->profile_image)
-                                        <img src="{{ asset('storage/' . $employee->profile_image) }}" alt="Profile Image" class="profile-image-preview">
-                                    @endif
                                     @error('profile_image') <span class="invalid-feedback">{{ $message }}</span> @enderror
                                 </div>
                             </div>
@@ -102,7 +119,7 @@
                             <div class="form-group row mb-3">
                                 <label class="col-sm-3 col-form-label">{{ __('messages.mm_dob') }}</label>
                                 <div class="col-sm-9">
-                                    <input type="date" name="mm_dob" class="form-control @error('mm_dob') is-invalid @enderror" value="{{ old('mm_dob', $employee->mm_dob) }}">
+                                    <input type="text" name="mm_dob" class="form-control @error('mm_dob') is-invalid @enderror" value="{{ old('mm_dob', $employee->mm_dob) }}">
                                     @error('mm_dob') <span class="invalid-feedback">{{ $message }}</span> @enderror
                                 </div>
                             </div>
@@ -110,7 +127,7 @@
                             <div class="form-group row mb-3">
                                 <label class="col-sm-3 col-form-label">{{ __('messages.eng_dob') }}</label>
                                 <div class="col-sm-9">
-                                    <input type="date" name="eng_dob" class="form-control @error('eng_dob') is-invalid @enderror" value="{{ old('eng_dob', $employee->eng_dob) }}">
+                                    <input type="date" name="eng_dob" class="form-control @error('eng_dob') is-invalid @enderror" value="{{ old('eng_dob', $employee->eng_dob ? \Carbon\Carbon::parse($employee->eng_dob)->format('Y-m-d') : '') }}">
                                     @error('eng_dob') <span class="invalid-feedback">{{ $message }}</span> @enderror
                                 </div>
                             </div>
@@ -200,6 +217,7 @@
                             </div>
                         </div>
 
+                        <!-- Step 2: Professional Details + Children + Relatives -->
                         <div class="form-step" id="step-2">
                             <h6>{{ __('messages.professional_details') }}</h6>
 
@@ -251,64 +269,72 @@
                                 </div>
                             </div>
 
+                            <!-- Children -->
                             <div class="section-header">{{ __('messages.children') }}</div>
                             <div id="children">
-                                @foreach($employee->children as $index => $child)
-                                <div class="child-entry">
-                                    <input type="hidden" name="children[{{ $index }}][id]" value="{{ $child->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.name') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="children[{{ $index }}][name]" class="form-control" value="{{ $child->name }}">
+                                @foreach(old('children', $employee->children ?? []) as $index => $child)
+                                    @php $childData = is_object($child) ? $child->toArray() : $child; @endphp
+                                    <div class="child-entry">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.name') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="children[{{ $index }}][name]" class="form-control" value="{{ $childData['name'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.date_of_birth') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="children[{{ $index }}][date_of_birth]" class="form-control" value="{{ isset($childData['date_of_birth']) ? \Carbon\Carbon::parse($childData['date_of_birth'])->format('Y-m-d') : '' }}">
+                                            </div>
                                         </div>
+                                        @if(isset($childData['id']))
+                                            <input type="hidden" name="children[{{ $index }}][id]" value="{{ $childData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.date_of_birth') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="children[{{ $index }}][date_of_birth]" class="form-control" value="{{ $child->date_of_birth }}">
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addChild()">{{ __('messages.add_child') }}</button>
 
+                            <!-- Relatives -->
                             <div class="section-header">{{ __('messages.relatives') }}</div>
                             <div id="relatives">
-                                @foreach($employee->relatives as $index => $relative)
-                                <div class="relative-entry">
-                                    <input type="hidden" name="relatives[{{ $index }}][id]" value="{{ $relative->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.name') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="relatives[{{ $index }}][name]" class="form-control" value="{{ $relative->name }}">
+                                @foreach(old('relatives', $employee->relatives ?? []) as $index => $relative)
+                                    @php $relativeData = is_object($relative) ? $relative->toArray() : $relative; @endphp
+                                    <div class="relative-entry">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.name') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="relatives[{{ $index }}][name]" class="form-control" value="{{ $relativeData['name'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.relation') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="relatives[{{ $index }}][relation]" class="form-control" value="{{ $relativeData['relation'] ?? '' }}">
+                                            </div>
                                         </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.job') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="relatives[{{ $index }}][job]" class="form-control" value="{{ $relativeData['job'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="relatives[{{ $index }}][location]" class="form-control" value="{{ $relativeData['location'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        @if(isset($relativeData['id']))
+                                            <input type="hidden" name="relatives[{{ $index }}][id]" value="{{ $relativeData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.relation') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="relatives[{{ $index }}][relation]" class="form-control" value="{{ $relative->relation }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.job') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="relatives[{{ $index }}][job]" class="form-control" value="{{ $relative->job }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="relatives[{{ $index }}][location]" class="form-control" value="{{ $relative->location }}">
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addRelative()">{{ __('messages.add_relative') }}</button>
@@ -319,209 +345,223 @@
                             </div>
                         </div>
 
+                        <!-- Step 3: Education + Past Experiences + Training + Current Company Experience -->
                         <div class="form-step" id="step-3">
+                            <!-- Education -->
                             <div class="section-header">{{ __('messages.education') }}</div>
                             <div id="educations">
-                                @foreach($employee->educations as $index => $education)
-                                <div class="education-entry">
-                                    <input type="hidden" name="educations[{{ $index }}][id]" value="{{ $education->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.type') }}</label>
-                                        <div class="col-sm-9">
-                                            <select name="educations[{{ $index }}][type]" class="form-control">
-                                                <option value="school" {{ $education->type == 'school' ? 'selected' : '' }}>{{ __('messages.school') }}</option>
-                                                <option value="uni" {{ $education->type == 'uni' ? 'selected' : '' }}>{{ __('messages.university') }}</option>
-                                                <option value="other" {{ $education->type == 'other' ? 'selected' : '' }}>{{ __('messages.other') }}</option>
-                                            </select>
+                                @foreach(old('educations', $employee->educations ?? []) as $index => $education)
+                                    @php $eduData = is_object($education) ? $education->toArray() : $education; @endphp
+                                    <div class="education-entry">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.type') }}</label>
+                                            <div class="col-sm-9">
+                                                <select name="educations[{{ $index }}][type]" class="form-control">
+                                                    <option value="school" {{ ($eduData['type'] ?? '') == 'school' ? 'selected' : '' }}>{{ __('messages.school') }}</option>
+                                                    <option value="uni" {{ ($eduData['type'] ?? '') == 'uni' ? 'selected' : '' }}>{{ __('messages.university') }}</option>
+                                                    <option value="other" {{ ($eduData['type'] ?? '') == 'other' ? 'selected' : '' }}>{{ __('messages.other') }}</option>
+                                                </select>
+                                            </div>
                                         </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.institution_name') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="educations[{{ $index }}][institution_name]" class="form-control" value="{{ $eduData['institution_name'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.highest_certificate') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="educations[{{ $index }}][highest_certificate]" class="form-control" value="{{ $eduData['highest_certificate'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.field_of_study') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="educations[{{ $index }}][field_of_study]" class="form-control" value="{{ $eduData['field_of_study'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="educations[{{ $index }}][date]" class="form-control" value="{{ isset($eduData['date']) ? \Carbon\Carbon::parse($eduData['date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.remark') }}</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="educations[{{ $index }}][remark]" class="form-control">{{ $eduData['remark'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        @if(isset($eduData['id']))
+                                            <input type="hidden" name="educations[{{ $index }}][id]" value="{{ $eduData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.institution_name') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="educations[{{ $index }}][institution_name]" class="form-control" value="{{ $education->institution_name }}">
-                                        </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.highest_certificate') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="educations[{{ $index }}][highest_certificate]" class="form-control" value="{{ $education->highest_certificate }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.field_of_study') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="educations[{{ $index }}][field_of_study]" class="form-control" value="{{ $education->field_of_study }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="educations[{{ $index }}][date]" class="form-control" value="{{ $education->date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.remark') }}</label>
-                                        <div class="col-sm-9">
-                                            <textarea name="educations[{{ $index }}][remark]" class="form-control">{{ $education->remark }}</textarea>
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addEducation()">{{ __('messages.add_education') }}</button>
 
+                            <!-- Past Experiences -->
                             <div class="section-header">{{ __('messages.past_experiences') }}</div>
                             <div id="past_experiences">
-                                @foreach($employee->pastExperiences as $index => $pastExp)
-                                <div class="past-experience-entry">
-                                    <input type="hidden" name="past_experiences[{{ $index }}][id]" value="{{ $pastExp->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.position') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="past_experiences[{{ $index }}][position]" class="form-control" value="{{ $pastExp->position }}">
+                                @foreach(old('past_experiences', $employee->pastExperiences ?? []) as $index => $experience)
+                                    @php $expData = is_object($experience) ? $experience->toArray() : $experience; @endphp
+                                    <div class="past-experience-entry">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.position') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="past_experiences[{{ $index }}][position]" class="form-control" value="{{ $expData['position'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.salary') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="past_experiences[{{ $index }}][salary]" class="form-control" value="{{ $expData['salary'] ?? '' }}">
+                                            </div>
                                         </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="past_experiences[{{ $index }}][location]" class="form-control" value="{{ $expData['location'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.start_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="past_experiences[{{ $index }}][start_date]" class="form-control" value="{{ isset($expData['start_date']) ? \Carbon\Carbon::parse($expData['start_date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.end_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="past_experiences[{{ $index }}][end_date]" class="form-control" value="{{ isset($expData['end_date']) ? \Carbon\Carbon::parse($expData['end_date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.remark') }}</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="past_experiences[{{ $index }}][remark]" class="form-control">{{ $expData['remark'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.life_insurance') }}</label>
+                                            <div class="col-sm-9">
+                                                <select name="past_experiences[{{ $index }}][life_insurance]" class="form-control">
+                                                    <option value="no" {{ ($expData['life_insurance'] ?? '') == 'no' ? 'selected' : '' }}>{{ __('messages.no') }}</option>
+                                                    <option value="yes" {{ ($expData['life_insurance'] ?? '') == 'yes' ? 'selected' : '' }}>{{ __('messages.yes') }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        @if(isset($expData['id']))
+                                            <input type="hidden" name="past_experiences[{{ $index }}][id]" value="{{ $expData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.salary') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="past_experiences[{{ $index }}][salary]" class="form-control" value="{{ $pastExp->salary }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="past_experiences[{{ $index }}][location]" class="form-control" value="{{ $pastExp->location }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.start_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="past_experiences[{{ $index }}][start_date]" class="form-control" value="{{ $pastExp->start_date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.end_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="past_experiences[{{ $index }}][end_date]" class="form-control" value="{{ $pastExp->end_date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.remark') }}</label>
-                                        <div class="col-sm-9">
-                                            <textarea name="past_experiences[{{ $index }}][remark]" class="form-control">{{ $pastExp->remark }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.life_insurance') }}</label>
-                                        <div class="col-sm-9">
-                                            <select name="past_experiences[{{ $index }}][life_insurance]" class="form-control">
-                                                <option value="no" {{ $pastExp->life_insurance == 'no' ? 'selected' : '' }}>{{ __('messages.no') }}</option>
-                                                <option value="yes" {{ $pastExp->life_insurance == 'yes' ? 'selected' : '' }}>{{ __('messages.yes') }}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addPastExperience()">{{ __('messages.add_past_experience') }}</button>
 
+                            <!-- Training -->
                             <div class="section-header">{{ __('messages.training') }}</div>
                             <div id="trainings">
-                                @foreach($employee->trainings as $index => $training)
-                                <div class="training-entry">
-                                    <input type="hidden" name="trainings[{{ $index }}][id]" value="{{ $training->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.training_type') }}</label>
-                                        <div class="col-sm-9">
-                                            <select name="trainings[{{ $index }}][training_type]" class="form-control">
-                                                <option value="domestic" {{ $training->training_type == 'domestic' ? 'selected' : '' }}>{{ __('messages.domestic') }}</option>
-                                                <option value="foreign" {{ $training->training_type == 'foreign' ? 'selected' : '' }}>{{ __('messages.foreign') }}</option>
-                                                <option value="other" {{ $training->training_type == 'other' ? 'selected' : '' }}>{{ __('messages.other') }}</option>
-                                            </select>
+                                @foreach(old('trainings', $employee->trainings ?? []) as $index => $training)
+                                    @php $trainingData = is_object($training) ? $training->toArray() : $training; @endphp
+                                    <div class="training-entry">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.training_type') }}</label>
+                                            <div class="col-sm-9">
+                                                <select name="trainings[{{ $index }}][training_type]" class="form-control">
+                                                    <option value="domestic" {{ ($trainingData['training_type'] ?? '') == 'domestic' ? 'selected' : '' }}>{{ __('messages.domestic') }}</option>
+                                                    <option value="foreign" {{ ($trainingData['training_type'] ?? '') == 'foreign' ? 'selected' : '' }}>{{ __('messages.foreign') }}</option>
+                                                    <option value="other" {{ ($trainingData['training_type'] ?? '') == 'other' ? 'selected' : '' }}>{{ __('messages.other') }}</option>
+                                                </select>
+                                            </div>
                                         </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.course_name') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="trainings[{{ $index }}][course_name]" class="form-control" value="{{ $trainingData['course_name'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="trainings[{{ $index }}][location]" class="form-control" value="{{ $trainingData['location'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.start_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="trainings[{{ $index }}][start_date]" class="form-control" value="{{ isset($trainingData['start_date']) ? \Carbon\Carbon::parse($trainingData['start_date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.end_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="trainings[{{ $index }}][end_date]" class="form-control" value="{{ isset($trainingData['end_date']) ? \Carbon\Carbon::parse($trainingData['end_date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        @if(isset($trainingData['id']))
+                                            <input type="hidden" name="trainings[{{ $index }}][id]" value="{{ $trainingData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.course_name') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="trainings[{{ $index }}][course_name]" class="form-control" value="{{ $training->course_name }}">
-                                        </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="trainings[{{ $index }}][location]" class="form-control" value="{{ $training->location }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.start_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="trainings[{{ $index }}][start_date]" class="form-control" value="{{ $training->start_date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.end_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="trainings[{{ $index }}][end_date]" class="form-control" value="{{ $training->end_date }}">
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addTraining()">{{ __('messages.add_training') }}</button>
 
+                            <!-- Current Company Experience (နိုင်ငံ့ဝန်ထမ်းတာဝန်ထမ်းဆောင်မှုမှတ်တမ်း) -->
                             <div class="section-header">{{ __('messages.experience') }}</div>
                             <div id="experiences">
-                                @foreach($employee->experiences as $index => $exp)
-                                <div class="experience-entry">
-                                    <input type="hidden" name="experiences[{{ $index }}][id]" value="{{ $exp->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.position') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="experiences[{{ $index }}][position]" class="form-control" value="{{ $exp->position }}">
+                                @foreach(old('experiences', $employee->experiences ?? []) as $index => $experience)
+                                    @php $expData = is_object($experience) ? $experience->toArray() : $experience; @endphp
+                                    <div class="experience-entry">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.position') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="experiences[{{ $index }}][position]" class="form-control" value="{{ $expData['position'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.department') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="experiences[{{ $index }}][department]" class="form-control" value="{{ $expData['department'] ?? '' }}">
+                                            </div>
                                         </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.from_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="experiences[{{ $index }}][from_date]" class="form-control" value="{{ isset($expData['from_date']) ? \Carbon\Carbon::parse($expData['from_date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.to_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="experiences[{{ $index }}][to_date]" class="form-control to-date" value="{{ isset($expData['to_date']) ? \Carbon\Carbon::parse($expData['to_date'])->format('Y-m-d') : '' }}" {{ $expData['is_current'] ?? false ? 'disabled' : '' }}>
+                                                <input type="hidden" name="experiences[{{ $index }}][is_current]" value="0">
+                                                <label><input type="checkbox" class="is-current" name="experiences[{{ $index }}][is_current]" value="1" {{ $expData['is_current'] ?? false ? 'checked' : '' }}> {{ __('messages.currently') }}</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="experiences[{{ $index }}][location]" class="form-control" value="{{ $expData['location'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        @if(isset($expData['id']))
+                                            <input type="hidden" name="experiences[{{ $index }}][id]" value="{{ $expData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.department') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="experiences[{{ $index }}][department]" class="form-control" value="{{ $exp->department }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.from_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="experiences[{{ $index }}][from_date]" class="form-control" value="{{ $exp->from_date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.to_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="experiences[{{ $index }}][to_date]" class="form-control to-date" value="{{ $exp->to_date }}" {{ $exp->is_current ? 'disabled' : '' }}>
-                                            <input type="hidden" name="experiences[{{ $index }}][is_current]" value="0">
-                                            <label>
-                                                <input type="checkbox" class="is-current" name="experiences[{{ $index }}][is_current]" value="1" {{ $exp->is_current ? 'checked' : '' }}> 
-                                                {{ __('messages.currently') }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="experiences[{{ $index }}][location]" class="form-control" value="{{ $exp->location }}">
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addExperience()">{{ __('messages.add_experience') }}</button>
@@ -532,69 +572,75 @@
                             </div>
                         </div>
 
+                        <!-- Step 4: Personnel Actions + Service Record + Certificates + Criminal Records -->
                         <div class="form-step" id="step-4">
+                            <!-- Personnel Actions -->
                             <div class="section-header">{{ __('messages.personnel_actions') }}</div>
                             <div id="personnel_actions">
-                                @foreach($employee->personnelActions as $index => $action)
-                                <div class="personnel-action-entry">
-                                    <input type="hidden" name="personnel_actions[{{ $index }}][id]" value="{{ $action->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.type') }}</label>
-                                        <div class="col-sm-9">
-                                            <select name="personnel_actions[{{ $index }}][type]" class="form-control">
-                                                <option value="recruit" {{ $action->type == 'recruit' ? 'selected' : '' }}>{{ __('messages.recruit') }}</option>
-                                                <option value="promote" {{ $action->type == 'promote' ? 'selected' : '' }}>{{ __('messages.promote') }}</option>
-                                                <option value="demote" {{ $action->type == 'demote' ? 'selected' : '' }}>{{ __('messages.demote') }}</option>
-                                                <option value="transfer" {{ $action->type == 'transfer' ? 'selected' : '' }}>{{ __('messages.transfer') }}</option>
-                                                <option value="punishment" {{ $action->type == 'punishment' ? 'selected' : '' }}>{{ __('messages.punishment') }}</option>
-                                                <option value="partnership" {{ $action->type == 'partnership' ? 'selected' : '' }}>{{ __('messages.partnership') }}</option>
-                                            </select>
+                                @foreach(old('personnel_actions', $employee->personnelActions ?? []) as $index => $action)
+                                    @php $actionData = is_object($action) ? $action->toArray() : $action; @endphp
+                                    <div class="personnel-action-entry">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.type') }}</label>
+                                            <div class="col-sm-9">
+                                                <select name="personnel_actions[{{ $index }}][type]" class="form-control">
+                                                    <option value="recruit" {{ ($actionData['type'] ?? '') == 'recruit' ? 'selected' : '' }}>{{ __('messages.recruit') }}</option>
+                                                    <option value="promote" {{ ($actionData['type'] ?? '') == 'promote' ? 'selected' : '' }}>{{ __('messages.promote') }}</option>
+                                                    <option value="demote" {{ ($actionData['type'] ?? '') == 'demote' ? 'selected' : '' }}>{{ __('messages.demote') }}</option>
+                                                    <option value="transfer" {{ ($actionData['type'] ?? '') == 'transfer' ? 'selected' : '' }}>{{ __('messages.transfer') }}</option>
+                                                    <option value="punishment" {{ ($actionData['type'] ?? '') == 'punishment' ? 'selected' : '' }}>{{ __('messages.punishment') }}</option>
+                                                    <option value="partnership" {{ ($actionData['type'] ?? '') == 'partnership' ? 'selected' : '' }}>{{ __('messages.partnership') }}</option>
+                                                </select>
+                                            </div>
                                         </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.position') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="personnel_actions[{{ $index }}][position]" class="form-control" value="{{ $actionData['position'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.department') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="personnel_actions[{{ $index }}][department]" class="form-control" value="{{ $actionData['department'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="personnel_actions[{{ $index }}][location]" class="form-control" value="{{ $actionData['location'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.start_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="personnel_actions[{{ $index }}][start_date]" class="form-control" value="{{ isset($actionData['start_date']) ? \Carbon\Carbon::parse($actionData['start_date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.end_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="personnel_actions[{{ $index }}][end_date]" class="form-control" value="{{ isset($actionData['end_date']) ? \Carbon\Carbon::parse($actionData['end_date'])->format('Y-m-d') : '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.reason') }}</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="personnel_actions[{{ $index }}][reason]" class="form-control">{{ $actionData['reason'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        @if(isset($actionData['id']))
+                                            <input type="hidden" name="personnel_actions[{{ $index }}][id]" value="{{ $actionData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.position') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="personnel_actions[{{ $index }}][position]" class="form-control" value="{{ $action->position }}">
-                                        </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.department') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="personnel_actions[{{ $index }}][department]" class="form-control" value="{{ $action->department }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.location') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="personnel_actions[{{ $index }}][location]" class="form-control" value="{{ $action->location }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.start_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="personnel_actions[{{ $index }}][start_date]" class="form-control" value="{{ $action->start_date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.end_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="personnel_actions[{{ $index }}][end_date]" class="form-control" value="{{ $action->end_date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.reason') }}</label>
-                                        <div class="col-sm-9">
-                                            <textarea name="personnel_actions[{{ $index }}][reason]" class="form-control">{{ $action->reason }}</textarea>
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addPersonnelAction()">{{ __('messages.add_personnel_action') }}</button>
 
+                            <!-- လက်ရှိဝန်ထမ်းအဖွဲ့ဝင်သည့်နေ့ (Permanent Appointment Record) -->
                             <div class="section-header">လက်ရှိဝန်ထမ်းအဖွဲ့ဝင်သည့်နေ့</div>
                             <div class="card p-4 border mb-4 bg-light">
                                 <div class="form-group row mb-3">
@@ -602,10 +648,10 @@
                                     <div class="col-sm-9">
                                         <select name="service_record[grade]" class="form-control @error('service_record.grade') is-invalid @enderror">
                                             <option value="">{{ __('messages.select_grade') }}</option>
-                                            <option value="junior" {{ old('service_record.grade', optional($employee->serviceRecord)->grade) == 'junior' ? 'selected' : '' }}>ငယ် (Junior Grade)</option>
-                                            <option value="senior" {{ old('service_record.grade', optional($employee->serviceRecord)->grade) == 'senior' ? 'selected' : '' }}>၎င်း (ကြီး) (Senior Grade)</option>
-                                            <option value="selection" {{ old('service_record.grade', optional($employee->serviceRecord)->grade) == 'selection' ? 'selected' : '' }}>၎င်း (ရွေးချယ်) (Selection Grade)</option>
-                                            <option value="higher" {{ old('service_record.grade', optional($employee->serviceRecord)->grade) == 'higher' ? 'selected' : '' }}>၎င်း (အထက်) (Higher Grade)</option>
+                                            <option value="junior" {{ old('service_record.grade', $employee->serviceRecord->grade ?? '') == 'junior' ? 'selected' : '' }}>ငယ် (Junior Grade)</option>
+                                            <option value="senior" {{ old('service_record.grade', $employee->serviceRecord->grade ?? '') == 'senior' ? 'selected' : '' }}>၎င်း (ကြီး) (Senior Grade)</option>
+                                            <option value="selection" {{ old('service_record.grade', $employee->serviceRecord->grade ?? '') == 'selection' ? 'selected' : '' }}>၎င်း (ရွေးချယ်) (Selection Grade)</option>
+                                            <option value="higher" {{ old('service_record.grade', $employee->serviceRecord->grade ?? '') == 'higher' ? 'selected' : '' }}>၎င်း (အထက်) (Higher Grade)</option>
                                         </select>
                                         @error('service_record.grade')
                                             <span class="invalid-feedback">{{ $message }}</span>
@@ -618,7 +664,7 @@
                                     <div class="col-sm-9">
                                         <input type="date" name="service_record[recruited_date]" 
                                                class="form-control @error('service_record.recruited_date') is-invalid @enderror"
-                                               value="{{ old('service_record.recruited_date', optional($employee->serviceRecord)->recruited_date) }}">
+                                               value="{{ old('service_record.recruited_date', $employee->serviceRecord->recruited_date ? \Carbon\Carbon::parse($employee->serviceRecord->recruited_date)->format('Y-m-d') : '') }}">
                                         @error('service_record.recruited_date')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -629,81 +675,113 @@
                                 <div class="form-group row mb-3">
                                     <label class="col-sm-3 col-form-label">{{ __('messages.remark') }}</label>
                                     <div class="col-sm-9">
-                                        <textarea name="service_record[remark]" class="form-control" rows="3">{{ old('service_record.remark', optional($employee->serviceRecord)->remark) }}</textarea>
+                                        <textarea name="service_record[remark]" class="form-control" rows="3">{{ old('service_record.remark', $employee->serviceRecord->remark ?? '') }}</textarea>
                                     </div>
                                 </div>
+                                
+                                @if(isset($employee->serviceRecord->id))
+                                    <input type="hidden" name="service_record[id]" value="{{ $employee->serviceRecord->id }}">
+                                @endif
                             </div>
 
+                            <!-- Certificates -->
                             <div class="section-header">{{ __('messages.certificates') }}</div>
                             <div id="certificates">
-                                @foreach($employee->certificates as $index => $cert)
-                                <div class="certificate-entry">
-                                    <input type="hidden" name="certificates[{{ $index }}][id]" value="{{ $cert->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.certificate_name') }}</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="certificates[{{ $index }}][certificate_name]" class="form-control" value="{{ $cert->certificate_name }}">
+                                @foreach(old('certificates', $employee->certificates ?? []) as $index => $certificate)
+                                    @php $certData = is_object($certificate) ? $certificate->toArray() : $certificate; @endphp
+                                    <div class="certificate-entry">
+                                        @if(isset($certData['file_url']))
+                                            <div class="form-group row mb-3">
+                                                <label class="col-sm-3 col-form-label">{{ __('messages.current_file') }}</label>
+                                                <div class="col-sm-9">
+                                                    <a href="{{ asset('storage/' . $certData['file_url']) }}" target="_blank" class="btn btn-sm btn-info">{{ __('messages.view_file') }}</a>
+                                                    <div class="form-check mt-2">
+                                                        <input class="form-check-input" type="checkbox" name="certificates[{{ $index }}][remove_file]" value="1">
+                                                        <label class="form-check-label">{{ __('messages.remove_file') }}</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.certificate_name') }}</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" name="certificates[{{ $index }}][certificate_name]" class="form-control" value="{{ $certData['certificate_name'] ?? '' }}">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.issue_date') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="date" name="certificates[{{ $index }}][issue_date]" class="form-control" value="{{ isset($certData['issue_date']) ? \Carbon\Carbon::parse($certData['issue_date'])->format('Y-m-d') : '' }}">
+                                            </div>
                                         </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.issuer') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" name="certificates[{{ $index }}][issuer]" class="form-control" value="{{ $certData['issuer'] ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.description') }}</label>
+                                            <div class="col-sm-9">
+                                                <textarea name="certificates[{{ $index }}][description]" class="form-control">{{ $certData['description'] ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.attachment') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="file" name="certificates[{{ $index }}][file]" class="form-control" accept="image/*,application/pdf">
+                                                <small class="text-muted">{{ __('messages.leave_empty_keep_current') }}</small>
+                                            </div>
+                                        </div>
+                                        @if(isset($certData['id']))
+                                            <input type="hidden" name="certificates[{{ $index }}][id]" value="{{ $certData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.issue_date') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="date" name="certificates[{{ $index }}][issue_date]" class="form-control" value="{{ $cert->issue_date }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.issuer') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" name="certificates[{{ $index }}][issuer]" class="form-control" value="{{ $cert->issuer }}">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.description') }}</label>
-                                        <div class="col-sm-9">
-                                            <textarea name="certificates[{{ $index }}][description]" class="form-control">{{ $cert->description }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.attachment') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="file" name="certificates[{{ $index }}][file]" class="form-control" accept="image/*,application/pdf">
-                                            @if($cert->file_path)
-                                                <a href="{{ asset('storage/' . $cert->file_path) }}" target="_blank" class="existing-file-link">View existing file</a>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addCertificate()">{{ __('messages.add_certificate') }}</button>
 
+                            <!-- Criminal Records -->
                             <div class="section-header">{{ __('messages.criminal_records') }}</div>
                             <div id="criminal_records">
-                                @foreach($employee->criminalRecords as $index => $record)
-                                <div class="criminal-record-entry">
-                                    <input type="hidden" name="criminal_records[{{ $index }}][id]" value="{{ $record->id }}">
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.description') }}</label>
-                                        <div class="col-sm-8">
-                                            <textarea name="criminal_records[{{ $index }}][description]" class="form-control">{{ $record->description }}</textarea>
+                                @foreach(old('criminal_records', $employee->criminalRecords ?? []) as $index => $record)
+                                    @php $recordData = is_object($record) ? $record->toArray() : $record; @endphp
+                                    <div class="criminal-record-entry">
+                                        @if(isset($recordData['file_url']))
+                                            <div class="form-group row mb-3">
+                                                <label class="col-sm-3 col-form-label">{{ __('messages.current_file') }}</label>
+                                                <div class="col-sm-9">
+                                                    <a href="{{ asset('storage/' . $recordData['file_url']) }}" target="_blank" class="btn btn-sm btn-info">{{ __('messages.view_file') }}</a>
+                                                    <div class="form-check mt-2">
+                                                        <input class="form-check-input" type="checkbox" name="criminal_records[{{ $index }}][remove_file]" value="1">
+                                                        <label class="form-check-label">{{ __('messages.remove_file') }}</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.description') }}</label>
+                                            <div class="col-sm-8">
+                                                <textarea name="criminal_records[{{ $index }}][description]" class="form-control">{{ $recordData['description'] ?? '' }}</textarea>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-1">
-                                            <button type="button" class="btn btn-sm btn-danger delete-entry">{{ __('messages.delete') }}</button>
+                                        <div class="form-group row mb-3">
+                                            <label class="col-sm-3 col-form-label">{{ __('messages.attachment') }}</label>
+                                            <div class="col-sm-9">
+                                                <input type="file" name="criminal_records[{{ $index }}][file]" class="form-control" accept="image/*,application/pdf">
+                                                <small class="text-muted">{{ __('messages.leave_empty_keep_current') }}</small>
+                                            </div>
                                         </div>
+                                        @if(isset($recordData['id']))
+                                            <input type="hidden" name="criminal_records[{{ $index }}][id]" value="{{ $recordData['id'] }}">
+                                        @endif
                                     </div>
-                                    <div class="form-group row mb-3">
-                                        <label class="col-sm-3 col-form-label">{{ __('messages.attachment') }}</label>
-                                        <div class="col-sm-9">
-                                            <input type="file" name="criminal_records[{{ $index }}][file]" class="form-control" accept="image/*,application/pdf">
-                                            @if($record->file_path)
-                                                <a href="{{ asset('storage/' . $record->file_path) }}" target="_blank" class="existing-file-link">View existing file</a>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
                                 @endforeach
                             </div>
                             <button type="button" class="btn btn-secondary mb-3" onclick="addCriminalRecord()">{{ __('messages.add_criminal_record') }}</button>
@@ -721,16 +799,16 @@
 </section>
 
 <script>
-// Initializing Indexes based on existing data count
-let childIndex = {{ $employee->children->count() }};
-let relativeIndex = {{ $employee->relatives->count() }};
-let educationIndex = {{ $employee->educations->count() }};
-let pastExperienceIndex = {{ $employee->pastExperiences->count() }};
-let trainingIndex = {{ $employee->trainings->count() }};
-let experienceIndex = {{ $employee->experiences->count() }};
-let personnelActionIndex = {{ $employee->personnelActions->count() }};
-let certificateIndex = {{ $employee->certificates->count() }};
-let criminalRecordIndex = {{ $employee->criminalRecords->count() }};
+// Indexes - set to the count of existing items
+let childIndex = {{ count(old('children', $employee->children ?? [])) }};
+let relativeIndex = {{ count(old('relatives', $employee->relatives ?? [])) }};
+let educationIndex = {{ count(old('educations', $employee->educations ?? [])) }};
+let pastExperienceIndex = {{ count(old('past_experiences', $employee->pastExperiences ?? [])) }};
+let trainingIndex = {{ count(old('trainings', $employee->trainings ?? [])) }};
+let experienceIndex = {{ count(old('experiences', $employee->experiences ?? [])) }};
+let personnelActionIndex = {{ count(old('personnel_actions', $employee->personnelActions ?? [])) }};
+let certificateIndex = {{ count(old('certificates', $employee->certificates ?? [])) }};
+let criminalRecordIndex = {{ count(old('criminal_records', $employee->criminalRecords ?? [])) }};
 
 // Add Child
 function addChild() {
@@ -1132,8 +1210,6 @@ function addCriminalRecord() {
 function bindDeleteButtons() {
     document.querySelectorAll('.delete-entry').forEach(button => {
         button.onclick = function() {
-            // Note: For editing, simply removing it from DOM might not delete it from DB 
-            // depending on your controller logic. You might need to add a hidden input "delete_ids[]"
             this.closest('.child-entry, .relative-entry, .education-entry, .past-experience-entry, .training-entry, .experience-entry, .personnel-action-entry, .certificate-entry, .criminal-record-entry').remove();
         };
     });

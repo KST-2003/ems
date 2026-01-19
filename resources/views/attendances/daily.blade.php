@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('content')
 <div class="card">
@@ -66,4 +66,4 @@
         });
     });
 </script>
-@endsection
+@endsection --}}

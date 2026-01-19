@@ -41,7 +41,6 @@ class Employee extends Model
 
     // Modern casting for dates
     protected $casts = [
-        'mm_dob' => 'date',
         'eng_dob' => 'date',
     ];
 

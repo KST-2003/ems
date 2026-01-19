@@ -1,6 +1,6 @@
 <aside id="sidebar" class="sidebar">
     <ul class="sidebar-nav" id="sidebar-nav">
-       
+
 
         {{-- Employee Management Dropdown --}}
         <li class="nav-item">
@@ -15,32 +15,44 @@
                 class="nav-content collapse {{ request()->is('employees*', 'attendances*', 'leaves*', 'leave-types*', 'recruitments*') ? 'show' : '' }}"
                 data-bs-parent="#sidebar-nav">
                 <li>
-                    <a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}">
+                    <a href="{{ route('employees.index') }}"
+                        class="{{ request()->routeIs('employees.*') ? 'active' : '' }}">
                         <i class="bi bi-circle"></i><span>Employees</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('attendances.index') }}" class="{{ request()->routeIs('attendances.*') ? 'active' : '' }}">
+                    <a href="{{ route('calendar.index') }}"
+                        class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}">
+                        <i class="bi bi-circle"></i><span>Company Calendar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('attendances.index') }}"
+                        class="{{ request()->routeIs('attendances.*') ? 'active' : '' }}">
                         <i class="bi bi-circle"></i><span>Daily Attendance</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('leaves.index') }}" class="{{ request()->routeIs('leaves.index') ? 'active' : '' }}">
+                    <a href="{{ route('leaves.index') }}"
+                        class="{{ request()->routeIs('leaves.index') ? 'active' : '' }}">
                         <i class="bi bi-circle"></i><span>Leaves Management</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('leave-allocations.index') }}" class="{{ request()->routeIs('leave-allocations.*') ? 'active' : '' }}">
+                    <a href="{{ route('leave-allocations.index') }}"
+                        class="{{ request()->routeIs('leave-allocations.*') ? 'active' : '' }}">
                         <i class="bi bi-circle"></i><span>Leave Allocations</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('leave-types.index') }}" class="{{ request()->routeIs('leave-types.*') ? 'active' : '' }}">
+                    <a href="{{ route('leave-types.index') }}"
+                        class="{{ request()->routeIs('leave-types.*') ? 'active' : '' }}">
                         <i class="bi bi-circle"></i><span>Leave Types</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('recruitments.index') }}" class="{{ request()->routeIs('recruitments.*') ? 'active' : '' }}">
+                    <a href="{{ route('recruitments.index') }}"
+                        class="{{ request()->routeIs('recruitments.*') ? 'active' : '' }}">
                         <i class="bi bi-circle"></i><span>Recruitments</span>
                     </a>
                 </li>
@@ -49,8 +61,8 @@
 
         {{-- Reports Section - FIXED --}}
         <li>
-            <a class="nav-link {{ request()->routeIs('leaves.reports') || request()->is('reports*') ? '' : 'collapsed' }}" 
-               href="{{ route('leaves.reports') }}">
+            <a class="nav-link {{ request()->routeIs('leaves.reports') || request()->is('reports*') ? '' : 'collapsed' }}"
+                href="{{ route('leaves.reports') }}">
                 {{-- <i class="bi bi-bar-chart"></i> --}}
                 <span>Reports (BOD Summary)</span>
             </a>
@@ -58,8 +70,8 @@
 
         {{-- Security Section - FIXED --}}
         <li>
-            <a class="nav-link {{ request()->routeIs('security.*') || request()->is('security*', 'roles*', 'permissions*') ? '' : 'collapsed' }}" 
-               href="{{ route('security.index') }}">
+            <a class="nav-link {{ request()->routeIs('security.*') || request()->is('security*', 'roles*', 'permissions*') ? '' : 'collapsed' }}"
+                href="{{ route('security.index') }}">
                 <i class="bi bi-shield-lock"></i>
                 <span>Security / Roles</span>
             </a>

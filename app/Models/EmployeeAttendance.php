@@ -12,7 +12,7 @@ class EmployeeAttendance extends Model
     protected $fillable = [
         'employee_id',
         'date',
-        'present', // Boolean or similar status
+        'status', // Boolean or similar status
     ];
 
     protected $casts = ['date'];
