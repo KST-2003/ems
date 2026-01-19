@@ -13,8 +13,7 @@
     .delete-entry { margin-top: 28px; }
     .section-header { margin-top: 40px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; }
     .profile-image-preview { max-width: 150px; height: auto; margin-top: 10px; border-radius: 50%; }
-    .current-image { max-width: 50px; margin-bottom: 10px; }
-    .img-thumbnail{max-width: 50px; margin-bottom: 10px !important ;}
+    .current-image { max-width: 150px; margin-bottom: 10px; }
 </style>
 @endsection
 
@@ -57,7 +56,7 @@
                             <div class="form-group row mb-3">
                                 <label class="col-sm-3 col-form-label">ပရိုဖိုင်ပုံ</label>
                                 <div class="col-sm-9">
-                                    <img src="{{ asset('storage/employees/' . $employee->profile_image) }}" alt="Profile Image" class="current-image img-thumbnail">
+                                    <img src="{{ asset('storage/employees/' . $employee->profile_image) }}" alt="Profile Image" class="current-image ">
                                     <div class="form-check mt-2">
                                         <input class="form-check-input" type="checkbox" name="remove_profile_image" id="remove_profile_image" value="1">
                                         <label class="form-check-label" for="remove_profile_image">
