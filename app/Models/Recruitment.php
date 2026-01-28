@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\Loggable;
 
 class Recruitment extends Model
 {
     use HasFactory;
+
+    use Loggable;
 
     protected $fillable = [
         'employee_id',
@@ -24,6 +27,13 @@ class Recruitment extends Model
         'status',
         'resume_file_path',
     ];
+
+    protected static function booted()
+    {
+        static::created(fn($model) => self::logAction("New Recruitment Entry", "Candidate: " . $model->name));
+        static::updated(fn($model) => self::logAction("Updated Recruitment Status", "Candidate: " . $model->name . " | Status: " . $model->status));
+        static::deleted(fn($model) => self::logAction("Removed Recruitment Record", "Candidate: " . $model->name));
+    }
 
     protected $appends = ['resume_file_url'];
 

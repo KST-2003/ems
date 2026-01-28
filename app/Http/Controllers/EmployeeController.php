@@ -17,6 +17,9 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Arr;
+use App\Models\EmployeeSpouse;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeController extends Controller
 {
@@ -59,10 +62,20 @@ class EmployeeController extends Controller
             'pastExperiences',
             'experiences',
             'personnelActions',
-            'serviceRecord', // singular
+            'serviceRecord',
             'certificates',
             'criminalRecords'
         ]);
+
+        // NULL SAFETY: Ensure these relations are not null for the view
+        if (!$employee->serviceRecord) {
+            $employee->setRelation('serviceRecord', new EmployeeServiceRecord());
+        }
+        // Assuming you have a 'spouse' relationship defined in your Employee Model
+        if (!$employee->relationLoaded('spouse') || !$employee->spouse) {
+            // Create a blank object so $employee->spouse->name won't crash the view
+            $employee->setRelation('spouse', (object)['name' => '', 'job' => '', 'hometown' => '']);
+        }
 
         return view('employees.edit', compact('employee'));
     }
@@ -81,7 +94,9 @@ class EmployeeController extends Controller
             $validated['profile_image'] = basename($path);
         }
 
-        $employee = Employee::create($validated);
+        // FIX: Remove spouse fields before creating the main Employee record
+        $employeeData = Arr::except($validated, ['spouse_name', 'spouse_job', 'spouse_job_place']);
+        $employee = Employee::create($employeeData);
 
         $this->saveRelatedRecords($employee, $validated, $request);
 
@@ -100,7 +115,9 @@ class EmployeeController extends Controller
             $validated['profile_image'] = basename($path);
         }
 
-        $employee->update($validated);
+        // FIX: Remove spouse fields before updating the main Employee record
+        $employeeData = Arr::except($validated, ['spouse_name', 'spouse_job', 'spouse_job_place']);
+        $employee->update($employeeData);
 
         $this->deleteRelatedRecords($employee);
         $this->saveRelatedRecords($employee, $validated, $request);
@@ -137,7 +154,8 @@ class EmployeeController extends Controller
     public function list(Request $request)
     {
         try {
-            $employees = Employee::select(['id', 'employee_id', 'name', 'phone', 'department']);
+            // Updated to select 'department_place' from migration
+            $employees = Employee::select(['id', 'employee_id', 'name', 'phone', 'department_place']);
 
             return DataTables::of($employees)
                 ->addColumn('#', function ($row) {
@@ -168,6 +186,9 @@ class EmployeeController extends Controller
      */
     private function deleteRelatedRecords(Employee $employee)
     {
+
+        DB::table('employee_spouses')->where('employee_id', $employee->id)->delete();
+
         $employee->children()->delete();
         $employee->educations()->delete();
         $employee->trainings()->delete();
@@ -185,6 +206,18 @@ class EmployeeController extends Controller
      */
     private function saveRelatedRecords(Employee $employee, array $validated, Request $request)
     {
+
+        if (!empty($validated['spouse_name'])) {
+            DB::table('employee_spouses')->insert([
+                'employee_id' => $employee->id,
+                'name' => $validated['spouse_name'],
+                'job' => $validated['spouse_job'] ?? null,
+                'hometown' => $validated['spouse_job_place'] ?? null, // Mapping job_place to hometown based on your migration
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         // Children
         if (!empty($validated['children'])) {
             foreach ($validated['children'] as $child) {
@@ -320,11 +353,13 @@ class EmployeeController extends Controller
         // Certificates
         if ($request->has('certificates')) {
             foreach ($request->input('certificates', []) as $index => $certificate) {
-                if (empty($certificate['certificate_name']) &&
+                if (
+                    empty($certificate['certificate_name']) &&
                     empty($certificate['issue_date']) &&
                     empty($certificate['issuer']) &&
                     empty($certificate['description']) &&
-                    !$request->hasFile("certificates.$index.file")) {
+                    !$request->hasFile("certificates.$index.file")
+                ) {
                     continue;
                 }
 
@@ -389,7 +424,7 @@ class EmployeeController extends Controller
             'permanent_address' => 'nullable|string',
             'current_position' => 'nullable|string',
             'salary' => 'nullable|string',
-            'department' => 'nullable|string',
+            'department_place' => 'nullable|string',
             'blood_type' => 'nullable|string',
             'lang_proficiency' => 'nullable|string',
             'hobby' => 'nullable|string',
@@ -478,10 +513,9 @@ class EmployeeController extends Controller
     }
     public function securityIndex()
     {
-        // Fetch all employees to assign roles to them
-        $employees = Employee::select('id', 'name', 'employee_id', 'department')->get();
-        
-        // Define system roles for your 200+ employee organization
+        // Updated to use 'department_place'
+        $employees = Employee::select('id', 'name', 'employee_id', 'department_place')->get();
+
         $roles = [
             'Admin' => 'Full access to all modules and BOD reports.',
             'Manager' => 'Can manage department attendance and leaves.',

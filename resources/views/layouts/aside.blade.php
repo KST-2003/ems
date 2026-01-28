@@ -23,7 +23,7 @@
                 <li>
                     <a href="{{ route('calendar.index') }}"
                         class="{{ request()->routeIs('calendar.*') ? 'active' : '' }}">
-                        <i class="bi bi-circle"></i><span>Company Calendar</span>
+                        <i class="bi bi-circle"></i><span>Calendar</span>
                     </a>
                 </li>
                 <li>
@@ -69,14 +69,15 @@
         </li>
 
         {{-- Security Section - FIXED --}}
-        <li>
-            <a class="nav-link {{ request()->routeIs('security.*') || request()->is('security*', 'roles*', 'permissions*') ? '' : 'collapsed' }}"
-                href="{{ route('security.index') }}">
-                <i class="bi bi-shield-lock"></i>
-                <span>Security / Roles</span>
-            </a>
-        </li>
-
+        @role('Super Admin')
+            <li>
+                <a href="{{ route('admin.security') }}" target="_self"
+                    class="nav-link {{ request()->routeIs('admin.security') ? '' : 'collapsed' }}">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Security & Roles</span>
+                </a>
+            </li>
+        @endrole
         {{-- Sign Out --}}
         <li class="nav-item">
             <a class="nav-link collapsed" style="cursor: pointer;"

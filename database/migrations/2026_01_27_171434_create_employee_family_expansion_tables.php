@@ -4,17 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateEmployeeRelativesTable extends Migration
+class CreateEmployeeFamilyExpansionTables extends Migration
 {
-    // database/migrations/2025_12_06_190040_create_employee_relatives_table.php
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up()
     {
-        Schema::create('employee_relatives', function (Blueprint $table) {
+        Schema::create('employee_parent_siblings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
+            $table->enum('side', ['father', 'mother']);
             $table->string('name')->nullable();
-            $table->string('nationality_religion')->nullable(); // Updated
-            $table->string('hometown')->nullable(); // New
+            $table->string('nationality_religion')->nullable();
+            $table->string('hometown')->nullable();
             $table->string('relation')->nullable();
             $table->string('job')->nullable();
             $table->string('location')->nullable();
@@ -22,8 +27,13 @@ class CreateEmployeeRelativesTable extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
     public function down()
     {
-        Schema::dropIfExists('employee_relatives');
+        Schema::dropIfExists('employee_family_expansion_tables');
     }
 }

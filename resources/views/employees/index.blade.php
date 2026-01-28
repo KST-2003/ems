@@ -72,7 +72,7 @@ $(document).ready(function () {
                 { data: 'employee_id', name: 'employee_id' },
                 { data: 'name', name: 'name' },
                 { data: 'phone', name: 'phone' },
-                { data: 'department', name: 'department' },
+                { data: 'department_place', name: 'department_place' },
                 {
                     data: 'id',
                     name: 'id',

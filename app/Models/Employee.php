@@ -6,10 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Traits\Loggable;
 
 class Employee extends Model
 {
     use HasFactory;
+
+    use Loggable;
+
+    protected static function booted()
+    {
+        static::created(fn($model) => self::logAction("Inserted Employee", $model->name));
+        static::updated(fn($model) => self::logAction("Edited Employee", $model->name));
+        static::deleted(fn($model) => self::logAction("Deleted Employee", $model->name));
+    }
 
     protected $fillable = [
         'employee_id',

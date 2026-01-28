@@ -10,25 +10,19 @@ use Illuminate\Support\Facades\Hash;
 
 class RoleAndPermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        // 1. Reset cached roles and permissions
+        // 1. Reset cache
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. Create Permissions
-        // We define granular permissions for the Employee module
+        // 2. Define Granular Permissions
         $permissions = [
-            'view employees',
-            'create employees',
-            'edit employees',
-            'delete employees',
-            'print employees', // <--- This distinguishes User A from User B
-            'manage users',    // <--- Only for Super Admin
+            'view employees',   // Level 1, 2, 3
+            'print employees',  // Level 1, 2, 3
+            'create employees', // Level 2, 3
+            'edit employees',   // Level 3
+            'delete employees', // Super Admin Only
+            'manage users',    // Super Admin Only
         ];
 
         foreach ($permissions as $permission) {
@@ -37,73 +31,49 @@ class RoleAndPermissionSeeder extends Seeder
 
         // 3. Create Roles and Assign Permissions
 
-        // --- Role: Super Admin ---
-        // Has EVERYTHING.
+        // --- Super Admin ---
         $superAdminRole = Role::create(['name' => 'Super Admin']);
         $superAdminRole->givePermissionTo(Permission::all());
 
-        // --- Role: Admin ---
-        // Can do everything with employees, but cannot manage other users/admins.
-        $adminRole = Role::create(['name' => 'Admin']);
-        $adminRole->givePermissionTo([
+        // --- Level 3 (Editor) ---
+        $level3 = Role::create(['name' => 'Level 3']);
+        $level3->givePermissionTo([
             'view employees',
+            'print employees',
             'create employees',
-            'edit employees',
-            'delete employees',
-            'print employees'
+            'edit employees'
         ]);
 
-        // --- Role: User A ---
-        // Can View and Print only. (No Create/Edit/Delete)
-        $userARole = Role::create(['name' => 'User A']);
-        $userARole->givePermissionTo([
+        // --- Level 2 (Data Entry) ---
+        $level2 = Role::create(['name' => 'Level 2']);
+        $level2->givePermissionTo([
+            'view employees',
+            'print employees',
+            'create employees'
+        ]);
+
+        // --- Level 1 (Employee/Viewer) ---
+        $level1 = Role::create(['name' => 'Level 1']);
+        $level1->givePermissionTo([
             'view employees',
             'print employees'
-        ]);
-
-        // --- Role: User B ---
-        // Can View only. (No Print)
-        $userBRole = Role::create(['name' => 'User B']);
-        $userBRole->givePermissionTo([
-            'view employees'
         ]);
 
         // 4. Create Default Users for Testing
+        $this->createUser('Super Admin', 'superadmin@gmail.com', $superAdminRole);
+        $this->createUser('Editor User', 'level3@gmail.com', $level3);
+        $this->createUser('Data Entry User', 'level2@gmail.com', $level2);
+        $this->createUser('Viewer User', 'level1@gmail.com', $level1);
+    }
 
-        // Super Admin User
-        $superAdmin = User::create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@example.com',
-            'password' => Hash::make('password'), // password is "password"
-            'is_active' => true,
-        ]);
-        $superAdmin->assignRole($superAdminRole);
-
-        // Admin User
-        $admin = User::create([
-            'name' => 'Admin Manager',
-            'email' => 'admin@example.com',
+    private function createUser($name, $email, $role)
+    {
+        $user = User::create([
+            'name' => $name,
+            'email' => $email,
             'password' => Hash::make('password'),
             'is_active' => true,
         ]);
-        $admin->assignRole($adminRole);
-
-        // User A (Viewer + Printer)
-        $userA = User::create([
-            'name' => 'User A (Printer)',
-            'email' => 'usera@example.com',
-            'password' => Hash::make('password'),
-            'is_active' => true,
-        ]);
-        $userA->assignRole($userARole);
-
-        // User B (Viewer Only)
-        $userB = User::create([
-            'name' => 'User B (Viewer)',
-            'email' => 'userb@example.com',
-            'password' => Hash::make('password'),
-            'is_active' => true,
-        ]);
-        $userB->assignRole($userBRole);
+        $user->assignRole($role);
     }
 }

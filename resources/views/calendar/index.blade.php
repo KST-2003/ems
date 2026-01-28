@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="pagetitle">
-    <h1>Company Calendar & Holidays</h1>
+    <h1>Calendar & Holidays</h1>
     <p class="text-muted">Manage public holidays and special working/closing days.</p>
 </div>
 

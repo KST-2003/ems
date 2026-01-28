@@ -16,6 +16,8 @@ class CreateEmployeeCriminalRecordsTable extends Migration
             $table->date('end_date')->nullable();
             $table->text('description')->nullable();
             $table->string('file_path')->nullable();
+
+
             $table->timestamps();
         });
     }

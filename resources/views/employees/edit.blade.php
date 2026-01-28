@@ -647,6 +647,7 @@
                                     <div class="col-sm-9">
                                         <select name="service_record[grade]" class="form-control @error('service_record.grade') is-invalid @enderror">
                                             <option value="">{{ __('messages.select_grade') }}</option>
+                                            {{-- Use optional() helper or null coalescing ?? --}}
                                             <option value="junior" {{ old('service_record.grade', $employee->serviceRecord->grade ?? '') == 'junior' ? 'selected' : '' }}>ငယ် (Junior Grade)</option>
                                             <option value="senior" {{ old('service_record.grade', $employee->serviceRecord->grade ?? '') == 'senior' ? 'selected' : '' }}>၎င်း (ကြီး) (Senior Grade)</option>
                                             <option value="selection" {{ old('service_record.grade', $employee->serviceRecord->grade ?? '') == 'selection' ? 'selected' : '' }}>၎င်း (ရွေးချယ်) (Selection Grade)</option>
@@ -661,9 +662,10 @@
                                 <div class="form-group row mb-3">
                                     <label class="col-sm-3 col-form-label">{{ __('messages.employment_date') }}</label>
                                     <div class="col-sm-9">
-                                        <input type="date" name="service_record[recruited_date]" 
-                                               class="form-control @error('service_record.recruited_date') is-invalid @enderror"
-                                               value="{{ old('service_record.recruited_date', $employee->serviceRecord->recruited_date ? \Carbon\Carbon::parse($employee->serviceRecord->recruited_date)->format('Y-m-d') : '') }}">
+                                    <input type="date" name="service_record[recruited_date]" 
+                                        class="form-control @error('service_record.recruited_date') is-invalid @enderror"
+                                        {{-- Fix the Carbon parse here by checking if serviceRecord exists first --}}
+                                        value="{{ old('service_record.recruited_date', ($employee->serviceRecord && $employee->serviceRecord->recruited_date) ? \Carbon\Carbon::parse($employee->serviceRecord->recruited_date)->format('Y-m-d') : '') }}">
                                         @error('service_record.recruited_date')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror

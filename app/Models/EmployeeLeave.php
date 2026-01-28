@@ -4,10 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Loggable;
 
 class EmployeeLeave extends Model
 {
     use HasFactory;
+
+    use Loggable;
+
+    protected static function booted()
+    {
+        static::created(fn($model) => self::logAction("Created Leave Request", "Employee ID: " . $model->employee_id . " | Type: " . $model->leave_type_id));
+        static::updated(fn($model) => self::logAction("Updated Leave Status", "ID: " . $model->id . " | Status: " . $model->status));
+        static::deleted(fn($model) => self::logAction("Deleted Leave Record", "ID: " . $model->id));
+    }
 
     protected $fillable = [
         'employee_id',

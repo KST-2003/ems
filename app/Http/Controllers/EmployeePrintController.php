@@ -14,8 +14,13 @@ class EmployeePrintController extends Controller
     public function templateA(Employee $employee)
     {
         $employee->load([
-            'children', 'educations', 'trainings', 'serviceRecord', 'experiences'
+            'children',
+            'educations',
+            'trainings',
+            'serviceRecord',
+            'experiences'
         ]);
+        Employee::logAction("Printed Template A", "Employee: " . $employee->name);
 
         return view('employees.print.template-a', compact('employee'));
     }
@@ -23,11 +28,17 @@ class EmployeePrintController extends Controller
     public function templateB(Employee $employee)
     {
         $employee->load([
-            'children', 'educations', 'trainings',
-            'pastExperiences', 'relatives', 'personnelActions',
-            'certificates', 'criminalRecords', 'experiences'
+            'children',
+            'educations',
+            'trainings',
+            'pastExperiences',
+            'relatives',
+            'personnelActions',
+            'certificates',
+            'criminalRecords',
+            'experiences'
         ]);
-
+        Employee::logAction("Printed Template B", "Employee: " . $employee->name);
         return view('employees.print.template-b', compact('employee'));
     }
 }

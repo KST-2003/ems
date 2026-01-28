@@ -5,39 +5,59 @@
 
 <!DOCTYPE html>
 <html lang="en">
-    @include('layouts.head')
+@include('layouts.head')
 
-    <body>
-        @include('layouts.header')
+<body>
+    @include('layouts.header')
 
-        @if(!in_array(Route::currentRouteName(), ['login', 'register']))
-            @if(Auth::check() && $show_sidebar)
-                @include('layouts.aside')
-            @endif
+    @if (!in_array(Route::currentRouteName(), ['login', 'register']))
+        @if (Auth::check() && $show_sidebar)
+            @include('layouts.aside')
+        @endif
+    @endif
+
+    <main id="main" class="main" style="margin-top: 70px;"> <!-- Adjusted for fixed header -->
+        @if (Auth::check())
+            <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
         @endif
 
-        <main id="main" class="main" style="margin-top: 70px;"> <!-- Adjusted for fixed header -->
-            @if(Auth::check())
-                <input type="hidden" name="user_id" id="user_id" value="{{ Auth::user()->id }}">
-            @endif
+        @include('layouts.success_message')
+<br>
+        @yield('content')
+    </main>
 
-            @include('layouts.success_message')
+    @include('layouts.footer')
+    @include('layouts.scripts')
 
-            @yield('content')
-        </main>
+    @yield('scripts')
 
-        @include('layouts.footer')
-        @include('layouts.scripts')
+    <!-- Auto-collapse sidebar if it was hidden last time -->
+    @if (Auth::check() && !$show_sidebar)
+        <script>
+            $(document).ready(function() {
+                $('.toggle-sidebar-btn').click(); // Simulate click to collapse sidebar
+            });
+        </script>
+    @endif
 
-        @yield('scripts')
+<script>
+    // Send a "ping" to the server every 30 seconds to keep the session alive
+    setInterval(function() {
+        fetch('/session-heartbeat', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        });
+    }, 10000); 
 
-        <!-- Auto-collapse sidebar if it was hidden last time -->
-        @if(Auth::check() && !$show_sidebar)
-            <script>
-                $(document).ready(function () {
-                    $('.toggle-sidebar-btn').click(); // Simulate click to collapse sidebar
-                });
-            </script>
-        @endif
-    </body>
+    // Optional: Also send a ping immediately when the page loads
+    window.onload = function() {
+        fetch('/session-heartbeat', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
+    };
+</script>
+
+</body>
+
 </html>

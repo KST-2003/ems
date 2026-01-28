@@ -7,6 +7,7 @@ use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\EmployeePrintController;
+use App\Http\Controllers\Admin\SecurityController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -14,7 +15,23 @@ Route::get('/', function () {
 
 Auth::routes();
 
+
+Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->group(function () {
+    Route::get('/security', [SecurityController::class, 'index'])->name('admin.security');
+    Route::delete('/logout-session/{id}', [SecurityController::class, 'logoutSession'])->name('admin.logout-session');
+
+    Route::put('/users/{user}', [SecurityController::class, 'updateUser'])->name('admin.users.update');
+});
+
+
 Route::middleware('auth')->group(function () {
+
+    Route::post('/session-heartbeat', function () {
+        // This empty function just triggers the 'StartSession' middleware 
+        // which automatically updates the 'last_activity' in your sessions table.
+        return response()->json(['status' => 'alive']);
+    })->name('session.heartbeat');
+
 
     // Employees
     Route::get('employees/list', [EmployeeController::class, 'list'])->name('employees.list');
@@ -26,6 +43,7 @@ Route::middleware('auth')->group(function () {
         Route::get('select', [EmployeePrintController::class, 'selectTemplate'])->name('select');
         Route::get('template-a', [EmployeePrintController::class, 'templateA'])->name('template-a');
         Route::get('template-b', [EmployeePrintController::class, 'templateB'])->name('template-b');
+        Route::get('template-c', [EmployeePrintController::class, 'templateC'])->name('template-c');
     });
 
     // Attendance - Added Bulk Store for 200+ employees
@@ -62,5 +80,4 @@ Route::middleware('auth')->group(function () {
     Route::patch('recruitments/{recruitment}/status', [RecruitmentController::class, 'updateStatus'])->name('recruitments.updateStatus');
     Route::resource('recruitments', RecruitmentController::class);
 
-    Route::get('security', [EmployeeController::class, 'securityIndex'])->name('security.index');
 });
