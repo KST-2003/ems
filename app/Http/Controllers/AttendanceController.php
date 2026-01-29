@@ -15,7 +15,7 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         $date = $request->input('date', Carbon::today()->toDateString());
-        $departments = Employee::distinct()->pluck('department');
+        $departments = Employee::distinct()->pluck('department_place');
 
         // Check if today is a Holiday or Special Closure in our new system
         $calendarEntry = CompanyCalendar::where('date', $date)

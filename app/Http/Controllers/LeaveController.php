@@ -15,9 +15,10 @@ use Illuminate\Support\Facades\Log;
 
 class LeaveController extends Controller
 {
-    public function allocationIndex()
+   public function allocationIndex()
     {
-        $employees = Employee::select('id', 'name', 'employee_id', 'department')->get();
+        // Select both columns to ensure the view has access to department and department_place
+        $employees = Employee::select('id', 'name', 'employee_id', 'department', 'department_place')->get();
         $leaveTypes = LeaveType::all();
         return view('leaves.allocation', compact('employees', 'leaveTypes'));
     }
@@ -45,9 +46,11 @@ class LeaveController extends Controller
 
     public function index()
     {
-        $departments = Employee::select('department')->distinct()->pluck('department');
+        // Use 'department' for the high-level filter dropdown
+        $departments = Employee::distinct()->pluck('department');
         $leaveTypes = LeaveType::all();
-        $employees = Employee::select('id', 'name', 'department')->get();
+        // Ensure employees object has both properties
+        $employees = Employee::select('id', 'name', 'department', 'department_place')->get();
         return view('leaves.index', compact('departments', 'leaveTypes', 'employees'));
     }
 
@@ -59,12 +62,14 @@ class LeaveController extends Controller
                     'employee_leaves.*',
                     'employees.name as employee_name',
                     'employees.department as employee_department',
+                    'employees.department_place as employee_department_place', // Added this
                     'leave_types.name as leave_type_name',
                     'leave_types.default_days as default_days'
                 ])
                 ->leftJoin('employees', 'employee_leaves.employee_id', '=', 'employees.id')
                 ->leftJoin('leave_types', 'employee_leaves.leave_type_id', '=', 'leave_types.id');
 
+            // Filter logic remains the same (using department)
             if ($request->filled('department')) {
                 $leaves->where('employees.department', $request->department);
             }
@@ -74,6 +79,10 @@ class LeaveController extends Controller
                 ->editColumn('employee_name', function($row) {
                     $url = route('employees.show', $row->employee_id);
                     return '<a href="'.$url.'" class="fw-bold text-primary">'.$row->employee_name.'</a>';
+                })
+                // Use ?? to prevent "property on null" crash in the duration columns
+                ->addColumn('department_info', function($row) {
+                    return ($row->employee_department ?? 'N/A') . ' (' . ($row->employee_department_place ?? '-') . ')';
                 })
                 ->editColumn('start_date', fn($row) => $row->start_date ? Carbon::parse($row->start_date)->format('d-m-Y') : '-')
                 ->editColumn('end_date', fn($row) => $row->end_date ? Carbon::parse($row->end_date)->format('d-m-Y') : '-')
@@ -224,7 +233,8 @@ class LeaveController extends Controller
    public function rollupReport(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
-        $departments = Employee::distinct()->pluck('department'); // Added this
+        // Fixed: Pluck from 'department' instead of 'department_place' for standard reporting
+        $departments = Employee::distinct()->pluck('department'); 
         
         $reports = AttendanceMonthlyRollup::with('employee')
             ->where('month', $month)
@@ -236,5 +246,5 @@ class LeaveController extends Controller
             ->get();
 
         return view('leaves.reports', compact('reports', 'month', 'departments'));
-    }
+    } 
 }

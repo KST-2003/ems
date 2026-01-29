@@ -29,20 +29,53 @@ class Employee extends Model
         'profile_image',
         'mm_dob',
         'eng_dob',
+
+        // Personal Details
         'nationality',
         'religion',
-        'father_name',
-        'mother_name',
         'nrc',
-        'spouse_name',
-        'spouse_job',
-        'spouse_job_place',
+        'blood_type',
+        'height',
+        'hair_color',
+        'notable_trade',
+        'skin_color',
+        'weight',
+        'pob',
+
+        // Parents Info
+        'father_name',
+        'father_nationality',
+        'father_religion',
+        'father_pob',
+        'father_job',
+        'father_address',
+        'mother_name',
+        'mother_nationality',
+        'mother_religion',
+        'mother_pob',
+        'mother_job',
+        'mother_address',
+        'is_parent_citizen',
+
+        // Political/Election Info
+        'isin_election',
+        'election_description',
+
+        // Address
         'current_address',
         'permanent_address',
+        'old_address',
+
+        // Job Details
         'current_position',
-        'salary',
+        'current_position_date',
         'department',
-        'blood_type',
+        'position_acquire',
+        'acquire_type',
+        'salary',
+        'department_place',
+        'job_refer',
+
         'lang_proficiency',
         'hobby',
     ];
@@ -169,5 +202,18 @@ class Employee extends Model
         }
 
         return round($totalDays / 365, 2);
+    }
+
+    /**
+     * Shortcut: Maps 'department' to 'department_place' automatically.
+     */
+    public function getDepartmentAttribute()
+    {
+        return $this->attributes['department_place'] ?? null;
+    }
+
+    public function setDepartmentAttribute($value)
+    {
+        $this->attributes['department_place'] = $value;
     }
 }

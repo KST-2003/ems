@@ -30,7 +30,7 @@
             position: absolute;
             top: 120px;
             right: 20mm;
-            width: 110px;
+            width: 140px;
             height: 140px;
             border: 2px solid #000;
             padding: 4px;

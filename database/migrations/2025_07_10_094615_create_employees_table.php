@@ -57,6 +57,7 @@ class CreateEmployeesTable extends Migration
         // Job Details
         $table->string('current_position')->nullable();
         $table->date('current_position_date')->nullable();
+        $table->string('department')->nullable();
         $table->string('position_acquire')->nullable();
         $table->string('acquire_type')->nullable();
         $table->string('salary')->nullable();
