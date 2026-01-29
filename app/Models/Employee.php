@@ -78,7 +78,7 @@ class Employee extends Model
 
         'lang_proficiency',
         'hobby',
-    ];
+    ]; 
 
     protected $appends = ['profile_image_url', 'total_experience_years'];
 
@@ -205,15 +205,15 @@ class Employee extends Model
     }
 
     /**
-     * Shortcut: Maps 'department' to 'department_place' automatically.
-     */
-    public function getDepartmentAttribute()
-    {
-        return $this->attributes['department_place'] ?? null;
-    }
+    //  * Shortcut: Maps 'department' to 'department_place' automatically.
+    //  */
+    // public function getDepartmentAttribute()
+    // {
+    //     return $this->attributes['department_place'] ?? null;
+    // }
 
-    public function setDepartmentAttribute($value)
-    {
-        $this->attributes['department_place'] = $value;
-    }
+    // public function setDepartmentAttribute($value)
+    // {
+    //     $this->attributes['department_place'] = $value;
+    // }
 }

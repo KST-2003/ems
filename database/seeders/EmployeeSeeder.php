@@ -72,7 +72,7 @@ class EmployeeSeeder extends Seeder
                 'mm_dob' => $emp['dob_mm'],
                 'eng_dob' => '1990-01-01', // Placeholder
                 'current_position' => $emp['pos'],
-                'department_place' => $emp['dept'],
+                'department' => $emp['dept'],
                 'gender' => str_contains($emp['name'], 'U ') ? 'male' : 'female',
                 'nationality' => 'Myanmar',
                 'religion' => 'Buddhism',

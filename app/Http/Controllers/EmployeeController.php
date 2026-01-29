@@ -154,8 +154,8 @@ class EmployeeController extends Controller
     public function list(Request $request)
     {
         try {
-            // Updated to select 'department_place' from migration
-            $employees = Employee::select(['id', 'employee_id', 'name', 'phone', 'department_place']);
+
+            $employees = Employee::select(['id', 'employee_id', 'name', 'phone', 'department']);
 
             return DataTables::of($employees)
                 ->addColumn('#', function ($row) {
@@ -424,6 +424,7 @@ class EmployeeController extends Controller
             'permanent_address' => 'nullable|string',
             'current_position' => 'nullable|string',
             'salary' => 'nullable|string',
+            'department'=> 'nullable|string',
             'department_place' => 'nullable|string',
             'blood_type' => 'nullable|string',
             'lang_proficiency' => 'nullable|string',
@@ -513,8 +514,8 @@ class EmployeeController extends Controller
     }
     public function securityIndex()
     {
-        // Updated to use 'department_place'
-        $employees = Employee::select('id', 'name', 'employee_id', 'department_place')->get();
+        // Updated to use 'department'
+        $employees = Employee::select('id', 'name', 'employee_id', 'department')->get();
 
         $roles = [
             'Admin' => 'Full access to all modules and BOD reports.',

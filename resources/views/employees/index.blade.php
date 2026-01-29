@@ -54,6 +54,7 @@ $(document).ready(function () {
     if (typeof $.fn.DataTable === 'undefined') {
         console.error('DataTables is not loaded');
     } else {
+        console.log("Initializing DataTable...");
         $('#employees-table').DataTable({
             processing: true,
             serverSide: true,
@@ -63,6 +64,7 @@ $(document).ready(function () {
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
+                
                 error: function (xhr, error, thrown) {
                     console.log('DataTables AJAX error:', xhr, error, thrown);
                 }
@@ -72,7 +74,7 @@ $(document).ready(function () {
                 { data: 'employee_id', name: 'employee_id' },
                 { data: 'name', name: 'name' },
                 { data: 'phone', name: 'phone' },
-                { data: 'department_place', name: 'department_place' },
+                { data: 'department', name: 'department' },
                 {
                     data: 'id',
                     name: 'id',
