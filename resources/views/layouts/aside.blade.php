@@ -4,15 +4,15 @@
 
         {{-- Employee Management Dropdown --}}
         <li class="nav-item">
-            <a class="nav-link {{ request()->is('employees*', 'attendances*', 'leaves*', 'leave-types*', 'recruitments*') ? '' : 'collapsed' }}"
+            <a class="nav-link {{ request()->is('employees*', 'attendances*', 'leaves*', 'leave-types*', 'recruitments*', 'calendar*') ? '' : 'collapsed' }}"
                 href="#employee-nav" data-bs-toggle="collapse"
-                aria-expanded="{{ request()->is('employees*', 'attendances*', 'leaves*', 'leave-types*', 'recruitments*') ? 'true' : 'false' }}">
+                aria-expanded="{{ request()->is('employees*', 'attendances*', 'leaves*', 'leave-types*', 'recruitments*', 'calendar*') ? 'true' : 'false' }}">
                 <i class="bi bi-person-badge"></i>
                 <span>Employee Management</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="employee-nav"
-                class="nav-content collapse {{ request()->is('employees*', 'attendances*', 'leaves*', 'leave-types*', 'recruitments*') ? 'show' : '' }}"
+                class="nav-content collapse {{ request()->is('employees*', 'attendances*', 'leaves*', 'leave-types*', 'recruitments*', 'calendar*') ? 'show' : '' }}"
                 data-bs-parent="#sidebar-nav">
                 <li>
                     <a href="{{ route('employees.index') }}"

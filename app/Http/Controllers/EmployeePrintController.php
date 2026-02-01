@@ -41,4 +41,22 @@ class EmployeePrintController extends Controller
         Employee::logAction("Printed Template B", "Employee: " . $employee->name);
         return view('employees.print.template-b', compact('employee'));
     }
+    public function templateC(Employee $employee)
+    {
+        $employee->load([
+            'personalRecord',
+            'spouse',
+            'abroads',
+            'parentSiblings',
+            'children',
+            'educations',
+            'trainings',
+            'serviceRecord',
+            'experiences',
+            'certificates'
+        ]);
+        
+        Employee::logAction("Printed Template C", "Detailed report for: " . $employee->name);
+        return view('employees.print.template-c', compact('employee'));
+    }
 }

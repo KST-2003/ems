@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 class LeaveController extends Controller
 {
-   public function allocationIndex()
+    public function allocationIndex()
     {
         // Select both columns to ensure the view has access to department and department_place
         $employees = Employee::select('id', 'name', 'employee_id', 'department', 'department_place')->get();
@@ -76,12 +76,12 @@ class LeaveController extends Controller
 
             return DataTables::of($leaves)
                 ->addIndexColumn()
-                ->editColumn('employee_name', function($row) {
+                ->editColumn('employee_name', function ($row) {
                     $url = route('employees.show', $row->employee_id);
-                    return '<a href="'.$url.'" class="fw-bold text-primary">'.$row->employee_name.'</a>';
+                    return '<a href="' . $url . '" class="fw-bold text-primary">' . $row->employee_name . '</a>';
                 })
                 // Use ?? to prevent "property on null" crash in the duration columns
-                ->addColumn('department_info', function($row) {
+                ->addColumn('department_info', function ($row) {
                     return ($row->employee_department ?? 'N/A') . ' (' . ($row->employee_department_place ?? '-') . ')';
                 })
                 ->editColumn('start_date', fn($row) => $row->start_date ? Carbon::parse($row->start_date)->format('d-m-Y') : '-')
@@ -130,12 +130,22 @@ class LeaveController extends Controller
         $totalDays = $this->calculateTotalDays($validated['start_date'], $validated['end_date'], $leaveType);
 
         $leave = EmployeeLeave::create(array_merge($validated, ['total_days' => $totalDays]));
-        
+
         if ($validated['status'] === 'done') {
             $this->updateRollup($validated['employee_id'], Carbon::parse($validated['start_date'])->format('Y-m'));
         }
 
         return redirect()->route('leaves.index')->with('success', 'Leave recorded: ' . $totalDays . ' days.');
+    }
+    public function edit(EmployeeLeave $leave)
+    {
+        // Fetch all employees to allow changing the assignee if needed
+        $employees = Employee::select('id', 'name', 'employee_id')->get();
+
+        // Fetch all leave types for the dropdown
+        $leaveTypes = LeaveType::all();
+
+        return view('leaves.edit', compact('leave', 'employees', 'leaveTypes'));
     }
 
     public function update(Request $request, EmployeeLeave $leave)
@@ -175,7 +185,7 @@ class LeaveController extends Controller
                     $total++; // Forced work day
                 }
                 // holidays and close_exceptions are skipped
-                continue; 
+                continue;
             }
 
             // 2. Default Weekend Logic
@@ -230,21 +240,21 @@ class LeaveController extends Controller
         ]));
     }
 
-   public function rollupReport(Request $request)
+    public function rollupReport(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
         // Fixed: Pluck from 'department' instead of 'department_place' for standard reporting
-        $departments = Employee::distinct()->pluck('department'); 
-        
+        $departments = Employee::distinct()->pluck('department');
+
         $reports = AttendanceMonthlyRollup::with('employee')
             ->where('month', $month)
-            ->when($request->filled('department'), function($q) use ($request) {
-                $q->whereHas('employee', function($sq) use ($request) {
+            ->when($request->filled('department'), function ($q) use ($request) {
+                $q->whereHas('employee', function ($sq) use ($request) {
                     $sq->where('department', $request->department);
                 });
             })
             ->get();
 
         return view('leaves.reports', compact('reports', 'month', 'departments'));
-    } 
+    }
 }

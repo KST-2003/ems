@@ -24,6 +24,7 @@ class Employee extends Model
     protected $fillable = [
         'employee_id',
         'name',
+        'nickname',
         'phone',
         'gender',
         'profile_image',
@@ -78,7 +79,7 @@ class Employee extends Model
 
         'lang_proficiency',
         'hobby',
-    ]; 
+    ];
 
     protected $appends = ['profile_image_url', 'total_experience_years'];
 
@@ -162,6 +163,27 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeLeaveAllocation::class);
     }
+    /** --- Template C Expansion Relationships --- */
+
+    public function personalRecord()
+    {
+        return $this->hasOne(EmployeePersonalRecord::class);
+    }
+
+    public function spouse()
+    {
+        return $this->hasOne(EmployeeSpouse::class);
+    }
+
+    public function abroads()
+    {
+        return $this->hasMany(EmployeeAbroad::class);
+    }
+
+    public function parentSiblings()
+    {
+        return $this->hasMany(EmployeeParentSibling::class);
+    }
 
     /** --- Accessors --- */
 
@@ -204,16 +226,5 @@ class Employee extends Model
         return round($totalDays / 365, 2);
     }
 
-    /**
-    //  * Shortcut: Maps 'department' to 'department_place' automatically.
-    //  */
-    // public function getDepartmentAttribute()
-    // {
-    //     return $this->attributes['department_place'] ?? null;
-    // }
 
-    // public function setDepartmentAttribute($value)
-    // {
-    //     $this->attributes['department_place'] = $value;
-    // }
 }

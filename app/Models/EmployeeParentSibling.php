@@ -5,18 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EmployeeRelative extends Model
+class EmployeeParentSibling extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'employee_id',
+        'side',
         'name',
-        'relation', // How they are related (e.g., "Brother", "Uncle")
         'nationality_religion',
         'hometown',
+        'relation',
         'job',
-        'location',
+        'location'
     ];
 
     public function employee()

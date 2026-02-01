@@ -10,6 +10,7 @@ use App\Models\EmployeeChild;
 use App\Models\EmployeeEducation;
 use App\Models\EmployeeTraining;
 use App\Models\EmployeePastExperience;
+use App\Models\EmployeePersonalRecord;
 use App\Models\EmployeeRelative;
 use App\Models\PersonnelAction;
 use App\Models\EmployeeServiceRecord;
@@ -54,6 +55,7 @@ class EmployeeController extends Controller
      */
     public function edit(Employee $employee)
     {
+        // Load EVERY relationship needed for the 5 Tabs
         $employee->load([
             'children',
             'relatives',
@@ -64,17 +66,25 @@ class EmployeeController extends Controller
             'personnelActions',
             'serviceRecord',
             'certificates',
-            'criminalRecords'
+            'criminalRecords',
+            'personalRecord',   // MISSING: Tab 5 Background info
+            'spouse',           // MISSING: Tab 2 Spouse info
+            'abroads',          // MISSING: Tab 5 Foreign travel
+            'parentSiblings'    // MISSING: Tab 2 Extended family
         ]);
 
-        // NULL SAFETY: Ensure these relations are not null for the view
+        // NULL SAFETY: Ensure objects exist so the view doesn't crash when accessing properties
         if (!$employee->serviceRecord) {
             $employee->setRelation('serviceRecord', new EmployeeServiceRecord());
         }
-        // Assuming you have a 'spouse' relationship defined in your Employee Model
-        if (!$employee->relationLoaded('spouse') || !$employee->spouse) {
-            // Create a blank object so $employee->spouse->name won't crash the view
-            $employee->setRelation('spouse', (object)['name' => '', 'job' => '', 'hometown' => '']);
+
+        if (!$employee->personalRecord) {
+            $employee->setRelation('personalRecord', new EmployeePersonalRecord());
+        }
+
+        if (!$employee->spouse) {
+            // Using a real Model instance is better than (object) because it handles $fillable correctly
+            $employee->setRelation('spouse', new EmployeeSpouse());
         }
 
         return view('employees.edit', compact('employee'));
@@ -94,35 +104,117 @@ class EmployeeController extends Controller
             $validated['profile_image'] = basename($path);
         }
 
-        // FIX: Remove spouse fields before creating the main Employee record
-        $employeeData = Arr::except($validated, ['spouse_name', 'spouse_job', 'spouse_job_place']);
-        $employee = Employee::create($employeeData);
+        return DB::transaction(function () use ($validated, $request) {
+            // These keys are filtered OUT because they belong to OTHER tables.
+            // Physical attributes (height, weight, etc.) are NOT in this list, 
+            // so they WILL be sent to the Employee::create() method.
+            $keysForOtherTables = [
+                'spouse_name',
+                'spouse_job',
+                'spouse_job_place',
+                'spouse_relatives',
+                'family_tree',
+                'abroads',
+                'children',
+                'educations',
+                'trainings',
+                'past_experiences',
+                'relatives',
+                'personnel_actions',
+                'experiences',
+                'service_record',
+                'certificates',
+                'criminal_records',
+                'schools',
+                'latest_school',
+                'school_voluntary',
+                'hobbeis',
+                'citizen_duties',
+                'has_criminal_rec'
+            ];
 
-        $this->saveRelatedRecords($employee, $validated, $request);
+            $employeeData = Arr::except($validated, $keysForOtherTables);
+            $employee = Employee::create($employeeData);
 
-        return redirect()->route('employees.index')->with('success', __('messages.employee_created'));
+            $this->saveRelatedRecords($employee, $validated, $request);
+
+            return redirect()->route('employees.index')->with('success', __('messages.employee_created'));
+        });
     }
 
     public function update(Request $request, Employee $employee)
     {
+        // 1. Validate the incoming request
         $validated = $this->validateRequest($request, $employee->id);
 
-        if ($request->hasFile('profile_image')) {
-            if ($employee->profile_image) {
-                Storage::disk('public')->delete('employees/' . $employee->profile_image);
-            }
-            $path = $request->file('profile_image')->store('employees', 'public');
-            $validated['profile_image'] = basename($path);
+        try {
+            return DB::transaction(function () use ($validated, $request, $employee) {
+
+                // 2. Handle Profile Image Update
+                if ($request->hasFile('profile_image')) {
+                    if ($employee->profile_image) {
+                        Storage::disk('public')->delete('employees/' . $employee->profile_image);
+                    }
+                    $path = $request->file('profile_image')->store('employees', 'public');
+                    $validated['profile_image'] = basename($path);
+                }
+
+                // 3. Separate main Employee data from relational data
+                // We exclude all keys that belong to Tab 2, 3, 4, and 5 tables
+                $relationalKeys = [
+                    'spouse_name',
+                    'spouse_job',
+                    'spouse_job_place',
+                    'spouse_relatives',
+                    'family_tree',
+                    'abroads',
+                    'children',
+                    'educations',
+                    'trainings',
+                    'past_experiences',
+                    'relatives',
+                    'personnel_actions',
+                    'experiences',
+                    'service_record',
+                    'certificates',
+                    'criminal_records',
+                    'schools',
+                    'latest_school',
+                    'school_voluntary',
+                    'hobbies',
+                    'citizen_duties',
+                    'has_criminal_rec',
+                    'jobs_dept',
+                    'refugee',
+                    'jobtransfer_desc',
+                    'foreign_friends_desc',
+                    'relatives_officials',
+                    'referal_officials'
+                ];
+
+                $employeeData = Arr::except($validated, $relationalKeys);
+
+                // 4. Update the main Employee table
+                $employee->update($employeeData);
+
+                // 5. Cleanup and Sync Relational Data
+                // deleteRelatedRecords should clear children, educations, experiences, etc.
+                $this->deleteRelatedRecords($employee);
+
+                // saveRelatedRecords will re-insert children/experiences 
+                // and updateOrInsert the Personal Record (Tab 5)
+                $this->saveRelatedRecords($employee, $validated, $request);
+
+                //Log::info($validated);
+                return redirect()->route('employees.index')->with('success', __('messages.employee_updated'));
+            });
+        } catch (\Exception $e) {
+            // This is how you check for errors:
+            Log::error('Employee Update Failed: ' . $e->getMessage());
+
+            // Return back to the form with the error message and old input
+            return back()->withInput()->withErrors(['error' => 'Update failed: ' . $e->getMessage()]);
         }
-
-        // FIX: Remove spouse fields before updating the main Employee record
-        $employeeData = Arr::except($validated, ['spouse_name', 'spouse_job', 'spouse_job_place']);
-        $employee->update($employeeData);
-
-        $this->deleteRelatedRecords($employee);
-        $this->saveRelatedRecords($employee, $validated, $request);
-
-        return redirect()->route('employees.index')->with('success', __('messages.employee_updated'));
     }
 
     public function destroy(Employee $employee)
@@ -206,27 +298,66 @@ class EmployeeController extends Controller
      */
     private function saveRelatedRecords(Employee $employee, array $validated, Request $request)
     {
-
-        if (!empty($validated['spouse_name'])) {
-            DB::table('employee_spouses')->insert([
-                'employee_id' => $employee->id,
-                'name' => $validated['spouse_name'],
-                'job' => $validated['spouse_job'] ?? null,
-                'hometown' => $validated['spouse_job_place'] ?? null, // Mapping job_place to hometown based on your migration
-                'created_at' => now(),
+        // 1. Update/Insert Personal Records (Background Check Info)
+        DB::table('employee_personal_records')->updateOrInsert(
+            ['employee_id' => $employee->id],
+            [
+                'schools' => $validated['schools'] ?? null,
+                'latest_school' => $validated['latest_school'] ?? null,
+                'school_voluntary' => $validated['school_voluntary'] ?? null,
+                'hobbies' => $validated['hobbies'] ?? null,
+                'jobs_dept' => $validated['jobs_dept'] ?? null,
+                'refugee' => $validated['refugee'] ?? null,
+                'jobtransfer_desc' => $validated['jobtransfer_desc'] ?? null,
+                'citizen_duties' => $validated['citizen_duties'] ?? null,
+                'relatives_officials' => $validated['relatives_officials'] ?? null,
+                'foreign_friends_desc' => $validated['foreign_friends_desc'] ?? null,
+                'referal_officials' => $validated['referal_officials'] ?? null,
+                'has_criminal_rec' => $validated['has_criminal_rec'] ?? false,
                 'updated_at' => now(),
-            ]);
+            ]
+        );
+
+        // Spouse Information
+        // Maps to the new employee_spouses table
+        if (!empty($validated['spouse_name'])) {
+            DB::table('employee_spouses')->updateOrInsert(
+                ['employee_id' => $employee->id],
+                [
+                    'name' => $validated['spouse_name'],
+                    'job' => $validated['spouse_job'] ?? null,
+                    'hometown' => $validated['spouse_job_place'] ?? null,
+                    'updated_at' => now(),
+                ]
+            );
         }
 
-        // Children
+        // Save Spouse's Relatives (Siblings, Paternal, Maternal)
+        if (!empty($validated['spouse_relatives'])) {
+            DB::table('spouse_relatives')->where('employee_id', $employee->id)->delete();
+            foreach ($validated['spouse_relatives'] as $s_relative) {
+                if (!empty($s_relative['name'])) {
+                    DB::table('spouse_relatives')->insert([
+                        'employee_id' => $employee->id,
+                        'type' => $s_relative['type'], // sibling, paternal, maternal
+                        'name' => $s_relative['name'],
+                        'nationality_religion' => $s_relative['nationality_religion'] ?? null,
+                        'hometown' => $s_relative['hometown'] ?? null,
+                        'job' => $s_relative['job'] ?? null,
+                        'address' => $s_relative['address'] ?? null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
+
+        // 3. One-to-Many Relationships (DELETE existing first to prevent duplicates)
+        $employee->children()->delete();
         if (!empty($validated['children'])) {
             foreach ($validated['children'] as $child) {
                 if (!empty($child['name'])) {
-                    EmployeeChild::create([
-                        'employee_id' => $employee->id,
-                        'name' => $child['name'],
-                        'date_of_birth' => $child['date_of_birth'] ?? null,
-                    ]);
+                    $employee->children()->create($child);
                 }
             }
         }
@@ -289,6 +420,8 @@ class EmployeeController extends Controller
                     EmployeeRelative::create([
                         'employee_id' => $employee->id,
                         'name' => $relative['name'],
+                        'nationality_religion' => $relative['nationality_religion'] ?? null,
+                        'hometown' => $relative['hometown'] ?? null,
                         'relation' => $relative['relation'] ?? null,
                         'job' => $relative['job'] ?? null,
                         'location' => $relative['location'] ?? null,
@@ -296,7 +429,6 @@ class EmployeeController extends Controller
                 }
             }
         }
-
         // Personnel Actions
         if (!empty($validated['personnel_actions'])) {
             foreach ($validated['personnel_actions'] as $action) {
@@ -315,6 +447,41 @@ class EmployeeController extends Controller
                 }
             }
         }
+
+        // 2. Clear and Save Abroads (Section 10 from your image)
+        $employee->abroads()->delete();
+        if (!empty($validated['abroads'])) {
+            foreach ($validated['abroads'] as $abroad) {
+                if (!empty($abroad['country'])) {
+                    $employee->abroads()->create([
+                        'country'        => $abroad['country'],
+                        'reason'         => $abroad['reason'] ?? null,
+                        'host_name'      => $abroad['host_name'] ?? null, // Match DB name
+                        'departure_date' => $abroad['departure_date'] ?? null,
+                        'arrival_date'   => $abroad['arrival_date'] ?? null,
+                    ]);
+                }
+            }
+        }
+
+        // Parent/Sibling Expansion (Template C Family Tree)
+        if (!empty($validated['family_tree'])) {
+            $employee->parentSiblings()->delete();
+            foreach ($validated['family_tree'] as $member) {
+                if (!empty($member['name'])) {
+                    $employee->parentSiblings()->create([
+                        'side' => $member['side'], // father or mother
+                        'name' => $member['name'],
+                        'nationality_religion' => $member['nationality_religion'] ?? null,
+                        'hometown' => $member['hometown'] ?? null,
+                        'relation' => $member['relation'] ?? null,
+                        'job' => $member['job'] ?? null,
+                        'location' => $member['location'] ?? null,
+                    ]);
+                }
+            }
+        }
+
 
         // Current Company Experiences (နိုင်ငံ့ဝန်ထမ်းတာဝန်ထမ်းဆောင်မှုမှတ်တမ်း)
         if (!empty($validated['experiences'])) {
@@ -380,24 +547,22 @@ class EmployeeController extends Controller
             }
         }
 
-        // Criminal Records
         if ($request->has('criminal_records')) {
-            foreach ($request->input('criminal_records', []) as $index => $record) {
-                if (empty($record['description']) && !$request->hasFile("criminal_records.$index.file")) {
-                    continue;
-                }
+            foreach ($request->input('criminal_records', []) as $index => $crim) {
+                $filePath = $request->hasFile("criminal_records.$index.file")
+                    ? basename($request->file("criminal_records.$index.file")->store('criminal_records', 'public'))
+                    : ($crim['existing_file'] ?? null);
 
-                $filePath = null;
-                if ($request->hasFile("criminal_records.$index.file")) {
-                    $filePath = $request->file("criminal_records.$index.file")->store('criminal_records', 'public');
-                    $filePath = basename($filePath);
+                if ($filePath || !empty($crim['description'])) {
+                    EmployeeCriminalRecord::create([
+                        'employee_id' => $employee->id,
+                        'name' => $crim['name'] ?? null,
+                        'start_date' => $crim['start_date'] ?? null,
+                        'end_date' => $crim['end_date'] ?? null,
+                        'description' => $crim['description'] ?? null,
+                        'file_path' => $filePath,
+                    ]);
                 }
-
-                EmployeeCriminalRecord::create([
-                    'employee_id' => $employee->id,
-                    'description' => $record['description'] ?? null,
-                    'file_path' => $filePath,
-                ]);
             }
         }
     }
@@ -424,11 +589,39 @@ class EmployeeController extends Controller
             'permanent_address' => 'nullable|string',
             'current_position' => 'nullable|string',
             'salary' => 'nullable|string',
-            'department'=> 'nullable|string',
+            'department' => 'nullable|string',
             'department_place' => 'nullable|string',
             'blood_type' => 'nullable|string',
             'lang_proficiency' => 'nullable|string',
             'hobby' => 'nullable|string',
+
+            // ADD THIS FOR PARENT SIBLINGS
+            'family_tree' => 'nullable|array',
+            'family_tree.*.side' => 'required|in:father,mother',
+            'family_tree.*.name' => 'required|string',
+            'family_tree.*.relation' => 'nullable|string',
+            'family_tree.*.job' => 'nullable|string',
+            'family_tree.*.location' => 'nullable|string',
+            'family_tree.*.nationality_religion' => 'nullable|string',
+            'family_tree.*.hometown' => 'nullable|string',
+
+            // --- ADD THESE PHYSICAL ATTRIBUTES ---
+            'height'        => 'nullable|string|max:50',
+            'weight'        => 'nullable|string|max:50',
+            'hair_color'    => 'nullable|string|max:50',
+            'skin_color'    => 'nullable|string|max:50',
+            'notable_trade' => 'nullable|string|max:255',
+            'pob'           => 'nullable|string|max:255', // Place of Birth
+
+            // --- ADD MISSING PARENT DETAILS ---
+            'father_nationality' => 'nullable|string',
+            'father_religion'    => 'nullable|string',
+            'father_job'         => 'nullable|string',
+            'father_address'     => 'nullable|string',
+            'mother_nationality' => 'nullable|string',
+            'mother_religion'    => 'nullable|string',
+            'mother_job'         => 'nullable|string',
+            'mother_address'     => 'nullable|string',
 
             // Children
             'children' => 'nullable|array',
@@ -510,6 +703,25 @@ class EmployeeController extends Controller
             'criminal_records.*.description' => 'nullable|string',
             'criminal_records.*.file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:10240',
             'criminal_records.*.existing_file' => 'nullable|string',
+
+            //Personal Records
+            'schools'             => 'nullable|string',
+            'latest_school'       => 'nullable|string',
+            'school_voluntary'    => 'nullable|string',
+            'jobtransfer_desc'    => 'nullable|string',
+            'foreign_friends_desc' => 'nullable|string',
+            'relatives_officials' => 'nullable|string',
+            'referal_officials'   => 'nullable|string',
+            'has_criminal_rec'    => 'nullable|boolean',
+            'jobs_dept'           => 'nullable|string',
+            'refugee'             => 'nullable|string',
+
+            // Abroad Table (Section 10)
+            'abroads'                  => 'nullable|array',
+            'abroads.*.country'        => 'required_with:abroads.*.reason|string|nullable',
+            'abroads.*.reason'         => 'nullable|string',
+            'abroads.*.contact_person' => 'nullable|string',
+            'abroads.*.duration'       => 'nullable|string',
         ]);
     }
     public function securityIndex()
