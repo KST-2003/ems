@@ -12,6 +12,8 @@ class CreateEmployeesTable extends Migration
         $table->id();
         $table->string('employee_id')->unique();
         $table->string('name')->nullable();
+        $table->string('home_name')->nullable();
+        $table->string('nick_name')->nullable();
         $table->string('phone')->nullable();
         $table->enum('gender', ['male', 'female'])->nullable();
         $table->string('profile_image')->nullable();
@@ -25,8 +27,9 @@ class CreateEmployeesTable extends Migration
         $table->string('blood_type')->nullable();
         $table->string('height')->nullable();
         $table->string('hair_color')->nullable();
-        $table->string('notable_trade')->nullable();
+        $table->string('eye_color')->nullable();
         $table->string('skin_color')->nullable();
+        $table->string('notable_trade')->nullable();
         $table->string('weight')->nullable();
         $table->string('pob')->nullable();
 
@@ -44,6 +47,17 @@ class CreateEmployeesTable extends Migration
         $table->string('mother_job')->nullable();
         $table->string('mother_address')->nullable();
         $table->string('is_parent_citizen')->nullable();
+
+        //if Military Info
+         $table->string('badge_no')->nullable();
+         $table->date('entry_date')->nullable();
+         $table->string('batch_class_no')->nullable();
+         $table->date('date_comission')->nullable();
+         $table->date('date_discharge')->nullable();
+         $table->text('reason_discharge')->nullable();
+         $table->string('units_served')->nullable();
+         $table->string('disciplinary_record')->nullable();
+         $table->string('pension')->nullable();
         
         // Political/Election Info
         $table->boolean('isin_election')->nullable();
@@ -65,7 +79,7 @@ class CreateEmployeesTable extends Migration
         $table->string('job_refer')->nullable();
         
         $table->string('lang_proficiency')->nullable();
-        $table->string('hobby')->nullable();
+        $table->string('hobbies')->nullable();
         $table->timestamps();
 
         $table->index('name');

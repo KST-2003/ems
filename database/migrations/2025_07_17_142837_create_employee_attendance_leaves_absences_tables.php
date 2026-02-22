@@ -14,7 +14,7 @@ class CreateEmployeeAttendanceLeavesAbsencesTables extends Migration
             $table->foreignId('employee_id')->constrained()->onDelete('cascade');
             $table->date('date')->nullable();
             // Changed from boolean 'present' to enum 'status'
-            $table->enum('status', ['present', 'on_duty'])->default('present'); 
+            $table->enum('status', ['present', 'on_duty','absent','leave'])->default('present'); 
             $table->timestamps();
 
             // Optimization: Index for faster daily lookups

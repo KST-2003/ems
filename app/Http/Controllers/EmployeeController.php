@@ -42,9 +42,13 @@ class EmployeeController extends Controller
             'pastExperiences',
             'experiences',
             'personnelActions',
-            'serviceRecord', // singular
+            'serviceRecord',
             'certificates',
-            'criminalRecords'
+            'criminalRecords',
+            'personalRecord',   // Background history (Tab 5)
+            'abroads',          // Foreign travel (Tab 5)
+            'parentSiblings',   // Extended family (Tab 2)
+            'spouse'
         ]);
 
         return view('employees.show', compact('employee'));
@@ -128,7 +132,7 @@ class EmployeeController extends Controller
                 'schools',
                 'latest_school',
                 'school_voluntary',
-                'hobbeis',
+                'hobbies',
                 'citizen_duties',
                 'has_criminal_rec'
             ];
@@ -146,7 +150,6 @@ class EmployeeController extends Controller
     {
         // 1. Validate the incoming request
         $validated = $this->validateRequest($request, $employee->id);
-
         try {
             return DB::transaction(function () use ($validated, $request, $employee) {
 
@@ -572,6 +575,8 @@ class EmployeeController extends Controller
         return $request->validate([
             'employee_id' => 'required|string|unique:employees,employee_id,' . $employeeId,
             'name' => 'required|string|max:255',
+            'home_name' => 'nullable|string|max:255',
+            'nick_name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'gender' => 'nullable|in:male,female',
             'profile_image' => 'nullable|image|mimes:jpg,png,jpeg|max:10240',
@@ -579,9 +584,19 @@ class EmployeeController extends Controller
             'eng_dob' => 'nullable|date',
             'nationality' => 'nullable|string',
             'religion' => 'nullable|string',
+            'nrc' => 'nullable|string',
+            'blood_type' => 'nullable|string',
+            'height' => 'nullable|string',
+            'hair_color' => 'nullable|string',
+            'eye_color' => 'nullable|string',
+            'skin_color' => 'nullable|string',
+            'notable_trade' => 'nullable|string',
+            'weight' => 'nullable|string',
+            'pob' => 'nullable|string',
+
+            //Parent Info
             'father_name' => 'nullable|string',
             'mother_name' => 'nullable|string',
-            'nrc' => 'nullable|string',
             'spouse_name' => 'nullable|string',
             'spouse_job' => 'nullable|string',
             'spouse_job_place' => 'nullable|string',
@@ -591,9 +606,9 @@ class EmployeeController extends Controller
             'salary' => 'nullable|string',
             'department' => 'nullable|string',
             'department_place' => 'nullable|string',
-            'blood_type' => 'nullable|string',
             'lang_proficiency' => 'nullable|string',
-            'hobby' => 'nullable|string',
+            'hobbies' => 'nullable|string',
+            'is_parent_citizen' => 'nullable|string',
 
             // ADD THIS FOR PARENT SIBLINGS
             'family_tree' => 'nullable|array',
@@ -604,14 +619,6 @@ class EmployeeController extends Controller
             'family_tree.*.location' => 'nullable|string',
             'family_tree.*.nationality_religion' => 'nullable|string',
             'family_tree.*.hometown' => 'nullable|string',
-
-            // --- ADD THESE PHYSICAL ATTRIBUTES ---
-            'height'        => 'nullable|string|max:50',
-            'weight'        => 'nullable|string|max:50',
-            'hair_color'    => 'nullable|string|max:50',
-            'skin_color'    => 'nullable|string|max:50',
-            'notable_trade' => 'nullable|string|max:255',
-            'pob'           => 'nullable|string|max:255', // Place of Birth
 
             // --- ADD MISSING PARENT DETAILS ---
             'father_nationality' => 'nullable|string',
@@ -689,6 +696,17 @@ class EmployeeController extends Controller
             'service_record.recruited_date' => 'nullable|date',
             'service_record.remark' => 'nullable|string',
 
+            // Military Info
+            'badge_no' => 'nullable|string',
+            'entry_date' => 'nullable|date',
+            'batch_class_no' => 'nullable|string',
+            'date_comission' => 'nullable|date',
+            'date_discharge' => 'nullable|date',
+            'reason_discharge' => 'nullable|string',
+            'units_served' => 'nullable|string',
+            'disciplinary_record' => 'nullable|string',
+            'pension' => 'nullable|string',
+
             // Certificates
             'certificates' => 'nullable|array',
             'certificates.*.certificate_name' => 'nullable|string',
@@ -717,11 +735,12 @@ class EmployeeController extends Controller
             'refugee'             => 'nullable|string',
 
             // Abroad Table (Section 10)
-            'abroads'                  => 'nullable|array',
-            'abroads.*.country'        => 'required_with:abroads.*.reason|string|nullable',
-            'abroads.*.reason'         => 'nullable|string',
-            'abroads.*.contact_person' => 'nullable|string',
-            'abroads.*.duration'       => 'nullable|string',
+            'abroads'                   => 'nullable|array',
+            'abroads.*.country'         => 'required_with:abroads.*.reason|string|nullable',
+            'abroads.*.reason'          => 'nullable|string',
+            'abroads.*.host_name'       => 'nullable|string',
+            'abroads.*.departure_date'  => 'nullable|date', 
+            'abroads.*.arrival_date'    => 'nullable|date',
         ]);
     }
     public function securityIndex()

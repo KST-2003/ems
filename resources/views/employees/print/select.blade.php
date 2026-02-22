@@ -27,10 +27,10 @@
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <a
+                             <a href="{{ route('employees.print.template-c', $employee) }}" target="_blank"
                                class="btn btn-outline-success btn-lg w-100 py-4">
                                 <i class="bi bi-journal-text fs-3"></i><br>
-                                Template C <br>Coming Soon<br><small>ပုံစံ(၁)</small>
+                                Template C <br><small>ပုံစံ(၁)</small>
                             </a>
                         </div>
                     </div>

@@ -24,7 +24,8 @@ class Employee extends Model
     protected $fillable = [
         'employee_id',
         'name',
-        'nickname',
+        'home_name',
+        'nick_name',
         'phone',
         'gender',
         'profile_image',
@@ -58,6 +59,17 @@ class Employee extends Model
         'mother_address',
         'is_parent_citizen',
 
+        // Military Info
+        'badge_no',
+        'entry_date',
+        'batch_class_no',
+        'date_comission',
+        'date_discharge',
+        'reason_discharge',
+        'units_served',
+        'disciplinary_record',
+        'pension',
+
         // Political/Election Info
         'isin_election',
         'election_description',
@@ -78,7 +90,7 @@ class Employee extends Model
         'job_refer',
 
         'lang_proficiency',
-        'hobby',
+        'hobbies',
     ];
 
     protected $appends = ['profile_image_url', 'total_experience_years'];
@@ -86,6 +98,11 @@ class Employee extends Model
     // Modern casting for dates
     protected $casts = [
         'eng_dob' => 'date',
+        'entry_date' => 'date',
+        'date_comission' => 'date',
+        'date_discharge' => 'date',
+        'current_position_date' => 'date',
+        'isin_election' => 'boolean',
     ];
 
     /** --- Relationships --- */
@@ -225,6 +242,4 @@ class Employee extends Model
 
         return round($totalDays / 365, 2);
     }
-
-
 }

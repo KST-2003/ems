@@ -114,6 +114,16 @@
                                             <input type="text" name="name" class="form-control"
                                                 value="{{ old('name', $employee->name) }}" required>
                                         </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">ငယ်အမည်</label>
+                                            <input type="text" name="home_name" class="form-control"
+                                                value="{{ old('home_name', $employee->home_name ?? '') }}">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">အခြားအမည်</label>
+                                            <input type="text" name="nick_name" class="form-control"
+                                                value="{{ old('nick_name', $employee->nick_name ?? '') }}">
+                                        </div>
                                         <div class="col-md-4 mb-3"><label class="form-label">ကျား/မ</label>
                                             <select name="gender" class="form-select">
                                                 <option value="male"
@@ -296,128 +306,192 @@
 
 
 
-                       <div class="tab-pane fade" id="education">
-    <div class="section-header">ပညာအရည်အချင်း (Education)</div>
-    <div id="educations-container">
-        @foreach (old('educations', $employee->educations) as $index => $edu)
-            <div class="repeater-card">
-                <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
-                <div class="row mb-2">
-                    <div class="col-md-3">
-                        <label class="small">အမျိုးအစား</label>
-                        <select name="educations[{{ $index }}][type]" class="form-select">
-                            <option value="school" {{ (is_array($edu) ? $edu['type'] : $edu->type) == 'school' ? 'selected' : '' }}>ကျောင်း</option>
-                            <option value="uni" {{ (is_array($edu) ? $edu['type'] : $edu->type) == 'uni' ? 'selected' : '' }}>တက္ကသိုလ်</option>
-                            <option value="other" {{ (is_array($edu) ? $edu['type'] : $edu->type) == 'other' ? 'selected' : '' }}>အခြား</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="small">ကျောင်း/တက္ကသိုလ်အမည်</label>
-                        <input type="text" name="educations[{{ $index }}][institution_name]" class="form-control" value="{{ is_array($edu) ? $edu['institution_name'] : $edu->institution_name }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="small">ပညာအဆင့်</label>
-                        <input type="text" name="educations[{{ $index }}][degree_certificate]" class="form-control" value="{{ is_array($edu) ? $edu['degree_certificate'] ?? '' : $edu->degree_certificate ?? '' }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="small">အထူးပြုဘာသာ (Field)</label>
-                        <input type="text" name="educations[{{ $index }}][field_of_study]" class="form-control" value="{{ is_array($edu) ? $edu['field_of_study'] ?? '' : $edu->field_of_study ?? '' }}">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-3">
-                        <label class="small">ရက်စွဲ</label>
-                        <input type="date" name="educations[{{ $index }}][date]" class="form-control" value="{{ is_array($edu) ? $edu['date'] ?? '' : ($edu->date ? \Carbon\Carbon::parse($edu->date)->format('Y-m-d') : '') }}">
-                    </div>
-                    <div class="col-md-9">
-                        <label class="small">မှတ်ချက် (Remark)</label>
-                        <input type="text" name="educations[{{ $index }}][remark]" class="form-control" value="{{ is_array($edu) ? $edu['remark'] ?? '' : $edu->remark ?? '' }}">
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-4" onclick="addRepeater('educations')">+ ပညာအရည်အချင်း ထည့်ရန်</button>
+                        <div class="tab-pane fade" id="education">
+                            <div class="section-header">ပညာအရည်အချင်း (Education)</div>
+                            <div id="educations-container">
+                                @foreach (old('educations', $employee->educations) as $index => $edu)
+                                    <div class="repeater-card">
+                                        <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
+                                        <div class="row mb-2">
+                                            <div class="col-md-3">
+                                                <label class="small">အမျိုးအစား</label>
+                                                <select name="educations[{{ $index }}][type]" class="form-select">
+                                                    <option value="school"
+                                                        {{ (is_array($edu) ? $edu['type'] : $edu->type) == 'school' ? 'selected' : '' }}>
+                                                        ကျောင်း</option>
+                                                    <option value="uni"
+                                                        {{ (is_array($edu) ? $edu['type'] : $edu->type) == 'uni' ? 'selected' : '' }}>
+                                                        တက္ကသိုလ်</option>
+                                                    <option value="other"
+                                                        {{ (is_array($edu) ? $edu['type'] : $edu->type) == 'other' ? 'selected' : '' }}>
+                                                        အခြား</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="small">ကျောင်း/တက္ကသိုလ်အမည်</label>
+                                                <input type="text"
+                                                    name="educations[{{ $index }}][institution_name]"
+                                                    class="form-control"
+                                                    value="{{ is_array($edu) ? $edu['institution_name'] : $edu->institution_name }}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="small">ပညာအဆင့်</label>
+                                                <input type="text"
+                                                    name="educations[{{ $index }}][degree_certificate]"
+                                                    class="form-control"
+                                                    value="{{ is_array($edu) ? $edu['degree_certificate'] ?? '' : $edu->degree_certificate ?? '' }}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="small">အထူးပြုဘာသာ (Field)</label>
+                                                <input type="text"
+                                                    name="educations[{{ $index }}][field_of_study]"
+                                                    class="form-control"
+                                                    value="{{ is_array($edu) ? $edu['field_of_study'] ?? '' : $edu->field_of_study ?? '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label class="small">ရက်စွဲ</label>
+                                                <input type="date" name="educations[{{ $index }}][date]"
+                                                    class="form-control"
+                                                    value="{{ is_array($edu) ? $edu['date'] ?? '' : ($edu->date ? \Carbon\Carbon::parse($edu->date)->format('Y-m-d') : '') }}">
+                                            </div>
+                                            <div class="col-md-9">
+                                                <label class="small">မှတ်ချက် (Remark)</label>
+                                                <input type="text" name="educations[{{ $index }}][remark]"
+                                                    class="form-control"
+                                                    value="{{ is_array($edu) ? $edu['remark'] ?? '' : $edu->remark ?? '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-4"
+                                onclick="addRepeater('educations')">+ ပညာအရည်အချင်း ထည့်ရန်</button>
 
-    <div class="section-header">ပြည်တွင်းပြည်ပ သင်တန်းများတက်ရောက်မှု</div>
-    <div id="trainings-container">
-        @foreach (old('trainings', $employee->trainings) as $index => $training)
-            <div class="repeater-card">
-                <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
-                <div class="row mb-2">
-                    <div class="col-md-3">
-                        <label class="small">အမျိုးအစား</label>
-                        <select name="trainings[{{ $index }}][training_type]" class="form-select">
-                            <option value="domestic" {{ (is_array($training) ? $training['training_type'] : $training->training_type) == 'domestic' ? 'selected' : '' }}>ပြည်တွင်း</option>
-                            <option value="foreign" {{ (is_array($training) ? $training['training_type'] : $training->training_type) == 'foreign' ? 'selected' : '' }}>ပြည်ပ</option>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <label class="small">သင်တန်းအမည်</label>
-                        <input type="text" name="trainings[{{ $index }}][course_name]" class="form-control" value="{{ is_array($training) ? $training['course_name'] : $training->course_name }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small">နေရာ</label>
-                        <input type="text" name="trainings[{{ $index }}][location]" class="form-control" value="{{ is_array($training) ? $training['location'] : $training->location }}">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="small">စတင်သည့်ရက်</label>
-                        <input type="date" name="trainings[{{ $index }}][start_date]" class="form-control" value="{{ is_array($training) ? $training['start_date'] : ($training->start_date ? \Carbon\Carbon::parse($training->start_date)->format('Y-m-d') : '') }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small">ပြီးဆုံးသည့်ရက်</label>
-                        <input type="date" name="trainings[{{ $index }}][end_date]" class="form-control" value="{{ is_array($training) ? $training['end_date'] : ($training->end_date ? \Carbon\Carbon::parse($training->end_date)->format('Y-m-d') : '') }}">
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-4" onclick="addRepeater('trainings')">+ သင်တန်းမှတ်တမ်း ထည့်ရန်</button>
+                            <div class="section-header">ပြည်တွင်းပြည်ပ သင်တန်းများတက်ရောက်မှု</div>
+                            <div id="trainings-container">
+                                @foreach (old('trainings', $employee->trainings) as $index => $training)
+                                    <div class="repeater-card">
+                                        <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
+                                        <div class="row mb-2">
+                                            <div class="col-md-3">
+                                                <label class="small">အမျိုးအစား</label>
+                                                <select name="trainings[{{ $index }}][training_type]"
+                                                    class="form-select">
+                                                    <option value="domestic"
+                                                        {{ (is_array($training) ? $training['training_type'] : $training->training_type) == 'domestic' ? 'selected' : '' }}>
+                                                        ပြည်တွင်း</option>
+                                                    <option value="foreign"
+                                                        {{ (is_array($training) ? $training['training_type'] : $training->training_type) == 'foreign' ? 'selected' : '' }}>
+                                                        ပြည်ပ</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="small">သင်တန်းအမည်</label>
+                                                <input type="text" name="trainings[{{ $index }}][course_name]"
+                                                    class="form-control"
+                                                    value="{{ is_array($training) ? $training['course_name'] : $training->course_name }}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small">နေရာ</label>
+                                                <input type="text" name="trainings[{{ $index }}][location]"
+                                                    class="form-control"
+                                                    value="{{ is_array($training) ? $training['location'] : $training->location }}">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label class="small">စတင်သည့်ရက်</label>
+                                                <input type="date" name="trainings[{{ $index }}][start_date]"
+                                                    class="form-control"
+                                                    value="{{ is_array($training) ? $training['start_date'] : ($training->start_date ? \Carbon\Carbon::parse($training->start_date)->format('Y-m-d') : '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="small">ပြီးဆုံးသည့်ရက်</label>
+                                                <input type="date" name="trainings[{{ $index }}][end_date]"
+                                                    class="form-control"
+                                                    value="{{ is_array($training) ? $training['end_date'] : ($training->end_date ? \Carbon\Carbon::parse($training->end_date)->format('Y-m-d') : '') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-4"
+                                onclick="addRepeater('trainings')">+ သင်တန်းမှတ်တမ်း ထည့်ရန်</button>
 
-    <div class="section-header">ချီးမြှင့်ခံရသည့် ဘွဲ့ထူး၊ ဂုဏ်ထူးတံဆိပ်များ</div>
-    <div id="certificates-container">
-        @foreach (old('certificates', $employee->certificates) as $index => $cert)
-            <div class="repeater-card">
-                <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <label class="small">လက်မှတ်အမည်</label>
-                        <input type="text" name="certificates[{{ $index }}][certificate_name]" class="form-control" value="{{ is_array($cert) ? $cert['certificate_name'] : $cert->certificate_name }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small">ထုတ်ပေးသည့်ရက်</label>
-                        <input type="date" name="certificates[{{ $index }}][issue_date]" class="form-control" value="{{ is_array($cert) ? $cert['issue_date'] : ($cert->issue_date ? \Carbon\Carbon::parse($cert->issue_date)->format('Y-m-d') : '') }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small">ထုတ်ပေးသည့်ဌာန</label>
-                        <input type="text" name="certificates[{{ $index }}][issuer]" class="form-control" value="{{ is_array($cert) ? $cert['issuer'] : $cert->issuer }}">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-8">
-                        <label class="small">အကြောင်းအရာ</label>
-                        <input type="text" name="certificates[{{ $index }}][description]" class="form-control" value="{{ is_array($cert) ? $cert['description'] : $cert->description }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small">ဖိုင်အဟောင်း</label>
-                        @if($cert->file_path)
-                            <div class="small text-muted"><a href="{{ asset('storage/certificates/'.$cert->file_path) }}" target="_blank">View File</a></div>
-                        @endif
-                        <input type="file" name="certificates[{{ $index }}][file]" class="form-control">
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
-    <button type="button" class="btn btn-sm btn-outline-primary mb-4" onclick="addRepeater('certificates')">+ လက်မှတ် ထည့်ရန်</button>
-</div>
+                            <div class="section-header">ချီးမြှင့်ခံရသည့် ဘွဲ့ထူး၊ ဂုဏ်ထူးတံဆိပ်များ</div>
+                            <div id="certificates-container">
+                                @foreach (old('certificates', $employee->certificates) as $index => $cert)
+                                    <div class="repeater-card">
+                                        <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
+                                        <div class="row mb-2">
+                                            <div class="col-md-4">
+                                                <label class="small">လက်မှတ်အမည်</label>
+                                                <input type="text"
+                                                    name="certificates[{{ $index }}][certificate_name]"
+                                                    class="form-control"
+                                                    value="{{ is_array($cert) ? $cert['certificate_name'] : $cert->certificate_name }}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small">ထုတ်ပေးသည့်ရက်</label>
+                                                <input type="date"
+                                                    name="certificates[{{ $index }}][issue_date]"
+                                                    class="form-control"
+                                                    value="{{ is_array($cert) ? $cert['issue_date'] : ($cert->issue_date ? \Carbon\Carbon::parse($cert->issue_date)->format('Y-m-d') : '') }}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small">ထုတ်ပေးသည့်ဌာန</label>
+                                                <input type="text" name="certificates[{{ $index }}][issuer]"
+                                                    class="form-control"
+                                                    value="{{ is_array($cert) ? $cert['issuer'] : $cert->issuer }}">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <label class="small">အကြောင်းအရာ</label>
+                                                <input type="text"
+                                                    name="certificates[{{ $index }}][description]"
+                                                    class="form-control"
+                                                    value="{{ is_array($cert) ? $cert['description'] : $cert->description }}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small">ဖိုင်အဟောင်း (Existing File)</label>
+
+                                                @php
+                                                    // Handle both Array (from old input) and Object (from Database)
+                                                    $filePath = null;
+                                                    if (is_array($cert)) {
+                                                        $filePath =
+                                                            $cert['file_path'] ?? ($cert['existing_file'] ?? null);
+                                                    } elseif (is_object($cert)) {
+                                                        $filePath = $cert->file_path;
+                                                    }
+                                                @endphp
+
+                                                @if ($filePath)
+                                                    <div class="small text-muted">
+                                                        <a href="{{ asset('storage/certificates/' . $filePath) }}"
+                                                            target="_blank">View File</a>
+
+                                                        <input type="hidden"
+                                                            name="certificates[{{ $index }}][existing_file]"
+                                                            value="{{ $filePath }}">
+                                                    </div>
+                                                @endif
+
+                                                <input type="file" name="certificates[{{ $index }}][file]"
+                                                    class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-4"
+                                onclick="addRepeater('certificates')">+ လက်မှတ် ထည့်ရန်</button>
+                        </div>
 
 
-
-
-                        {{-- {{ $employee }} --}}
                         <div class="tab-pane fade" id="service">
                             <div class="section-header">နိုင်ငံ့ဝန်ထမ်း တာဝန်ထမ်းဆောင်မှု (လက်ရှိဌာန)</div>
                             <div id="experiences-container">
@@ -500,6 +574,57 @@
                                 <div class="col-md-6 mb-3"><label class="form-label">ခန့်အပ်သည့်ရက်စွဲ</label>
                                     <input type="date" name="service_record[recruited_date]" class="form-control"
                                         value="{{ old('service_record.recruited_date', $employee->serviceRecord && $employee->serviceRecord->recruited_date ? $employee->serviceRecord->recruited_date->format('Y-m-d') : '') }}">
+                                </div>
+                            </div>
+
+                            <div class="section-header">စစ်ဘက်ဆိုင်ရာ အချက်အလက်များ (Military Info)</div>
+                            <div class="card p-4 border shadow-sm mb-4 bg-white">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">ကိုယ်ပိုင်အမှတ်</label>
+                                        <input type="text" name="badge_no" class="form-control"
+                                            value="{{ old('badge_no', $employee->badge_no ?? '') }}">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">တပ်ထဲဝင်သည့်ရက်</label>
+                                        <input type="date" name="entry_date" class="form-control"
+                                            value="{{ old('entry_date', $employee->entry_date ? $employee->entry_date->format('Y-m-d') : '') }}">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">ဗိုလ်လောင်းသင်တန်းအမှတ်စဉ်</label>
+                                        <input type="text" name="batch_class_no" class="form-control"
+                                            value="{{ old('batch_class_no', $employee->batch_class_no ?? '') }}">
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">ပြန်တမ်းဝင်ဖြစ်သည့်နေ့</label>
+                                        <input type="date" name="date_comission" class="form-control"
+                                            value="{{ old('date_comission', $employee->date_comission ? $employee->date_comission->format('Y-m-d') : '') }}">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">တပ်ထွက်သည့်နေ့</label>
+                                        <input type="date" name="date_discharge" class="form-control"
+                                            value="{{ old('date_discharge', $employee->date_discharge ? $employee->date_discharge->format('Y-m-d') : '') }}">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">အငြမ်းစားလစာ</label>
+                                        <input type="text" name="pension" class="form-control"
+                                            value="{{ old('pension', $employee->pension ?? '') }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">တပ်ထွက်သည့်အကြောင်းအရင်း</label>
+                                        <input type="text" name="reason_discharge" class="form-control"
+                                            value="{{ old('reason_discharge', $employee->reason_discharge ?? '') }}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">အမှုထမ်းဆောင်ခဲ့သောတပ်များ</label>
+                                        <input type="text" name="units_served" class="form-control"
+                                            value="{{ old('units_served', $employee->units_served ?? '') }}">
+                                    </div>
+                                    <div class="col-md-12 mb-0">
+                                        <label class="form-label fw-bold">တပ်တွင်းရာဇဝင်အကျဉ်း/ပြစ်မှု</label>
+                                        <textarea name="disciplinary_record" class="form-control" rows="3">{{ old('disciplinary_record', $employee->disciplinary_record ?? '') }}</textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -786,7 +911,7 @@
             </div>
         </div>`;
         } else if (type === 'educations') {
-                html = `<div class="repeater-card">
+            html = `<div class="repeater-card">
             <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
             <div class="row mb-2">
                 <div class="col-md-3"><label class="small">အမျိုးအစား</label>
@@ -803,8 +928,8 @@
                 <div class="col-md-4"><label class="small">မှတ်ချက်</label><input type="text" name="educations[${index}][remark]" class="form-control"></div>
             </div>
         </div>`;
-        }else if (type === 'trainings') {
-        html = `<div class="repeater-card">
+        } else if (type === 'trainings') {
+            html = `<div class="repeater-card">
             <button type="button" class="btn btn-danger btn-sm delete-entry">X</button>
             <div class="row mb-2">
                 <div class="col-md-3"><label class="small">သင်တန်းအမျိုးအစား</label>
@@ -820,7 +945,7 @@
                 <div class="col-md-6"><label class="small">ပြီးဆုံးသည့်ရက်</label><input type="date" name="trainings[${index}][end_date]" class="form-control"></div>
             </div>
         </div>`;
-    }
+        }
 
         container.insertAdjacentHTML('beforeend', html);
         bindDelete();

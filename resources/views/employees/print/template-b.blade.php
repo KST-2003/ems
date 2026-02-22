@@ -233,7 +233,7 @@
                 </td>
                 <td colspan="3">
                     <b>ဝါသနာထုံမှု</b><br>
-                    {{ $employee->hobby ?? '-' }}
+                    {{ $employee->hobbies ?? '-' }}
                 </td>
             </tr>
 

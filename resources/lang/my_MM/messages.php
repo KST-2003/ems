@@ -43,7 +43,7 @@ return [
     'highest_certificate' => 'ပညာအဆင့်',
     'field_of_study' => 'field of study',
     'date' => "ခုနှစ်",
-    'hobby' => 'ဝါသနာ',
+    'hobbies' => 'ဝါသနာ',
     'children_names' => 'သားသမီးအမည်များ',
     'add_children' => 'ထပ်တိုး' , 
     'add_education' => 'ပညာအရည်ချင်းထည့်ရန်',
