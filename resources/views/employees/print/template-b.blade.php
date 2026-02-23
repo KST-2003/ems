@@ -1,425 +1,383 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $employee->name ?? 'Employee' }} - ပုံစံ အဝ (၂၂၂) အဆက်</title>
+    <title>ဝန်ထမ်းမှတ်တမ်းအကျဉ်း - ပုံစံ အဝ (၂၂၂)</title>
     <style>
+        @font-face {
+            font-family: 'Pyidaungsu';
+            src: local('Pyidaungsu');
+        }
         @page {
-            size: A4 portrait;
-            margin: 10mm 15mm;
+            size: A4;
+            margin: 15mm 15mm 15mm 20mm;
+        }
+        * {
+            box-sizing: border-box;
         }
         body {
-            font-family: 'Pyidaungsu', 'Zawgyi-One', sans-serif;
-            font-size: 13px;
-            line-height: 1.5;
+            font-family: 'Pyidaungsu', 'Myanmar Text', sans-serif;
+            font-size: 11px;
             color: #000;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+        .page {
+            width: 100%;
+            padding: 10px 0;
+        }
+        .page-break {
+            page-break-after: always;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #000;
-            margin-bottom: 15px;
-            table-layout: fixed;
         }
-        th, td {
+        td, th {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 4px 6px;
             vertical-align: top;
-            text-align: left;
-            word-wrap: break-word;
-            font-size: 13px;
         }
-        th {
-            font-weight: normal;
-            background-color: #f5f5f5;
+        .no-border td {
+            border: none;
+            padding: 3px 6px;
         }
         .center { text-align: center; }
         .bold { font-weight: bold; }
-        .img-container {
-            width: 100%;
-            height: 140px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            border: none;
-        }
-        .img-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        .header-title {
+        .title {
             text-align: center;
-            font-size: 16px;
             font-weight: bold;
-            margin: 20px 0;
+            font-size: 14px;
+            margin-bottom: 6px;
         }
-        @media print {
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .form-id {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 4px;
         }
+        .photo-box {
+            width: 110px;
+            height: 145px;
+            border: 2px solid #000;
+            display: block;
+            margin: 0 auto;
+        }
+        .mb4 { margin-bottom: 4px; }
+        .mt6 { margin-top: 6px; }
+        .right { text-align: right; }
+        .tall-row { height: 70px; }
     </style>
 </head>
-<body onload="window.print()">
-    <div class="header-title">ပုံစံ အဝ (၂၂၂) အဆက်</div>
+<body>
 
+<!-- ============================================================ -->
+<!-- PAGE 1  (IMG_0370)                                           -->
+<!-- ============================================================ -->
+<div class="page page-break">
+
+    <div class="title">ဝန်ထမ်းမှတ်တမ်းအကျဉ်း</div>
+    <div class="form-id">ပုံစံ &nbsp;– အဝ (၂၂၂)</div>
+
+    <!-- ROW 1 : Name / DOB / Age / ID+Rank  +  Photo -->
     <table>
-        <colgroup>
-            <col style="width: 29%" />
-            <col style="width: 11%" />
-            <col style="width: 11%" />
-            <col style="width: 24%" />
-            <col style="width: 23%" />
-        </colgroup>
-        <thead>
-            <tr>
-                <th rowspan="2">
-                    <p>အမည် - <b>{{ $employee->name }}</b></p>
-                    <p>(အဘ) – {{ $employee->father_name ?? '-' }}</p>
-                    <p>(မိ) – {{ $employee->mother_name ?? '-' }}</p>
-                    <p>လူမျိုး / ဘာသာ - {{ $employee->nationality ?? '-' }} / {{ $employee->religion ?? '-' }}</p>
-                </th>
-                <th colspan="2" class="center">မွေးသက္ကရာဇ်</th>
-                <th class="center bold">သက်ပြည့်</th>
-                <th class="center bold">ကိုယ်ပိုင်အမှတ် / ရာထူး</th>
-            </tr>
-            <tr>
-                <th colspan="2">
-                    <p>အင်္ဂလိပ် - {{ $employee->eng_dob ? \Carbon\Carbon::parse($employee->eng_dob)->format('d-m-Y') : '-' }}</p>
-                    <p>မြန်မာ - {{ $employee->mm_dob ?? '-' }}</p>
-                </th>
-                <th class="center">
-                    {{ $employee->eng_dob ? \Carbon\Carbon::parse($employee->eng_dob)->age . ' နှစ်' : '-' }}
-                </th>
-                <th rowspan="4" style="padding: 0;">
-                    <div class="img-container">
-                        @if(!empty($employee->profile_image_url))
-                            <img src="{{ $employee->profile_image_url }}" alt="Photo">
-                        @else
-                            <span style="color:#ccc; font-size: 12px;">ဓာတ်ပုံ မရှိပါ</span>
+        <tr>
+            <!-- Name block -->
+            <td style="width:34%;">
+                အမည် – {{ $employee->name }}<br>
+                (အဘ) – {{ $employee->father_name }}<br>
+                (မိ) – {{ $employee->mother_name }}<br>
+                လူမျိုး/ဘာသာ – {{ $employee->nationality }}/{{ $employee->religion }}
+            </td>
+            <!-- DOB block -->
+            <td style="width:26%;">
+                <span class="bold">မွေးသက္ကရာဇ်</span><br>
+                အင်္ဂလိပ် – {{ $employee->dob_eng }}<br>
+                မြန်မာ– {{ $employee->dob_mm }}
+            </td>
+            <!-- Age -->
+            <td style="width:14%;" class="center">သက်ပြည့်</td>
+            <!-- ID/Rank + photo (rowspan 2) -->
+            <td style="width:26%;" class="center" rowspan="2">
+                ကိုယ်ပိုင်အမှတ်/<br>ရာထူး
+                <div style="margin-top:6px;">
+                    <div class="photo-box">
+                        @if(!empty($employee->image))
+                            <img src="{{ $employee->image }}" style="width:100%;height:100%;object-fit:cover;">
                         @endif
                     </div>
-                </th>
-            </tr>
-            <tr>
-                <th>
-                    {{ $employee->employee_id ?? '-' }} <br>
-                    {{ $employee->current_position ?? '-' }}
-                </th>
-                <th colspan="3">
-                    <p>မှတ်ပုံတင် အမှတ် - {{ $employee->nrc ?? '-' }}</p>
-                    <p>နိုင်ငံသားစိစစ်ရေးကဒ်အမှတ် - {{ $employee->nrc ?? '-' }}</p>
-                </th>
-            </tr>
-            <tr>
-                <th>အမြဲတမ်းနေရပ်</th>
-                <th colspan="3">လက်ရှိနေရပ်</th>
-            </tr>
-            <tr>
-                <td>{{ $employee->permanent_address ?? '-' }}</td>
-                <td colspan="3">{{ $employee->current_address ?? '-' }}</td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="center bold">
-                <td>ပညာအဆင့်</td>
-                <td colspan="2">ကျောင်း / တက္ကသိုလ်</td>
-                <td>ရရှိသည့်နှစ်</td>
-                <td>ထူးခြားချက်</td>
-            </tr>
-            @if($employee->educations && $employee->educations->isNotEmpty())
-                @foreach($employee->educations as $edu)
-                    <tr>
-                        <td>{{ $edu->highest_certificate ?? '-' }}</td>
-                        <td colspan="2">{{ $edu->institution_name ?? '-' }}</td>
-                        <td class="center">{{ $edu->date ? \Carbon\Carbon::parse($edu->date)->format('Y') : '-' }}</td>
-                        <td>{{ $edu->remark ?? '-' }}</td>
-                    </tr>
-                @endforeach
-            @else
-                <tr><td colspan="5" style="height: 40px;"></td></tr>
-            @endif
-
-            <!-- လက်ရှိဝန်ထမ်းအဖွဲ့ဝင်သည့်နေ့ -->
-            <tr>
-                <td class="bold">လက်ရှိဝန်ထမ်းအဖွဲ့ဝင်သည့်နေ့</td>
-                <td colspan="2" class="center">
-                    {{ optional($employee->serviceRecord)->recruited_date ? \Carbon\Carbon::parse($employee->serviceRecord->recruited_date)->format('d-m-Y') : '-' }}
-                </td>
-                <td colspan="2" class="center bold">
-                    အဆင့် — 
-                    @switch(optional($employee->serviceRecord)->grade)
-                        @case('junior') ငယ် @break
-                        @case('senior') ၎င်း (ကြီး) @break
-                        @case('selection') ၎င်း (ရွေးချယ်) @break
-                        @case('higher') ၎င်း (အထက်) @break
-                        @default -
-                    @endswitch
-                </td>
-            </tr>
-
-            <!-- ချီးမြှင့်ခံရသည့် ဘွဲ့ထူး၊ ဂုဏ်ထူးတံဆိပ်များ -->
-            <tr>
-                <td colspan="5" class="bold center">ချီးမြှင့်ခံရသည့် ဘွဲ့ထူး၊ ဂုဏ်ထူးတံဆိပ်များ</td>
-            </tr>
-            <tr>
-                <td colspan="3">အမျိုးအမည်</td>
-                <td colspan="2">ချီးမြှင့်သည့်နေ့စွဲ</td>
-            </tr>
-            @if($employee->certificates && $employee->certificates->isNotEmpty())
-                @foreach($employee->certificates as $cert)
-                    <tr>
-                        <td colspan="3">{{ $cert->certificate_name ?? '-' }}</td>
-                        <td colspan="2" class="center">
-                            {{ $cert->issue_date ? \Carbon\Carbon::parse($cert->issue_date)->format('d-m-Y') : '-' }}
-                        </td>
-                    </tr>
-                @endforeach
-            @else
-                <tr><td colspan="5" style="height: 60px;"></td></tr>
-            @endif
-
-            <!-- အခြားတက်ရောက်ဖူးသောသင်တန်းများ -->
-            <tr>
-                <td colspan="6" class="bold center" style="background-color: #f0f0f0;">
-                    အခြားတက်ရောက်ဖူးသောသင်တန်းများ
-                </td>
-            </tr>
-            <tr class="center bold">
-                <td>သင်တန်းအမည်</td>
-                <td colspan="2">မှ</td>
-                <td colspan="2">ထိ</td>
-                <td>နေရာ</td>
-            </tr>
-            @if($employee->trainings && $employee->trainings->isNotEmpty())
-                @foreach($employee->trainings as $t)
-                    <tr>
-                        <td>{{ $t->course_name ?? '-' }}</td>
-                        <td colspan="2">{{ $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('d-m-Y') : '-' }}</td>
-                        <td colspan="2">{{ $t->end_date ? \Carbon\Carbon::parse($t->end_date)->format('d-m-Y') : '-' }}</td>
-                        <td>{{ $t->location ?? '-' }}</td>
-                    </tr>
-                @endforeach
-            @else
-                <tr><td colspan="6" style="height: 60px;"></td></tr>
-            @endif
-
-            <!-- ခင်ပွန်း/ဇနီး နှင့် သား/သမီးများ -->
-            <tr>
-                <td colspan="3">
-                    <p><b>ခင်ပွန်း / ဇနီးအမည်</b> - {{ $employee->spouse_name ?? '-' }}</p>
-                    <p><b>အလုပ်အကိုင်</b> - {{ $employee->spouse_job ?? '-' }}</p>
-                    <p><b>ဒေသ</b> - {{ $employee->spouse_job_place ?? '-' }}</p>
-                </td>
-                <td colspan="3">
-                    <p class="bold center">သား / သမီးများ</p>
-                    <p><b>အမည်</b></p>
-                    @foreach($employee->children as $child)
-                        {{ $child->name ?? '-' }}<br>
-                    @endforeach
-                    <p><b>မွေးနေ့</b></p>
-                    @foreach($employee->children as $child)
-                        {{ $child->date_of_birth ? \Carbon\Carbon::parse($child->date_of_birth)->format('d-m-Y') : '-' }}<br>
-                    @endforeach
-                </td>
-            </tr>
-
-            <!-- ကျွမ်းကျင်သောစကား / ဝါသနာ -->
-            <tr>
-                <td colspan="3">
-                    <b>ကျွမ်းကျင်သောစကား</b><br>
-                    {{ $employee->lang_proficiency ?? '-' }}
-                </td>
-                <td colspan="3">
-                    <b>ဝါသနာထုံမှု</b><br>
-                    {{ $employee->hobbies ?? '-' }}
-                </td>
-            </tr>
-
-            <!-- ယခင်ဆောင်ရွက်ခဲ့ဖူးသောလုပ်ငန်း (Past Jobs) -->
-            <tr>
-                <td colspan="6" class="bold center" style="background-color: #f0f0f0;">
-                    ယခင်ဆောင်ရွက်ခဲ့ဖူးသောလုပ်ငန်း
-                </td>
-            </tr>
-            <tr class="center bold">
-                <td>လုပ်ငန်း / ရာထူး (လစာနှုန်း)</td>
-                <td>ဒေသ</td>
-                <td colspan="2">မှ</td>
-                <td colspan="2">ထိ</td>
-            </tr>
-            @if($employee->pastExperiences && $employee->pastExperiences->isNotEmpty())
-                @foreach($employee->pastExperiences as $job)
-                    <tr>
-                        <td>{{ $job->position ?? '-' }} ({{ $job->salary ?? '-' }})</td>
-                        <td>{{ $job->location ?? '-' }}</td>
-                        <td colspan="2">{{ $job->start_date ? \Carbon\Carbon::parse($job->start_date)->format('d-m-Y') : '-' }}</td>
-                        <td colspan="2">{{ $job->end_date ? \Carbon\Carbon::parse($job->end_date)->format('d-m-Y') : '-' }}</td>
-                    </tr>
-                @endforeach
-            @else
-                <tr><td colspan="6" style="height: 60px;"></td></tr>
-            @endif
-
-            <!-- ရာထူးခန့်အပ် / ပြောင်းရွှေ့ / အပြစ်ပေး စသည် -->
-            <tr>
-                <td colspan="6" class="bold center" style="background-color: #f0f0f0;">
-                    ရာထူးခန့်အပ်ခြင်း / တိုးမြှင့်ခြင်း / လျော့ချခြင်း / ပြောင်းရွှေ့ခြင်း / အပြစ်ပေးခြင်း စသည်
-                </td>
-            </tr>
-            <tr class="center bold">
-                <td>စဉ်</td>
-                <td>အမိန့်အမှတ် / အမျိုးအစား</td>
-                <td>ရာထူး</td>
-                <td>ဌာန</td>
-                <td>ဒေသ</td>
-                <td>ရက်စွဲ</td>
-            </tr>
-            @if($employee->personnelActions && $employee->personnelActions->isNotEmpty())
-                @foreach($employee->personnelActions as $index => $action)
-                    <tr>
-                        <td class="center">{{ $index + 1 }}</td>
-                        <td>{{ $action->type ?? '-' }}</td>
-                        <td>{{ $action->position ?? '-' }}</td>
-                        <td>{{ $action->department ?? '-' }}</td>
-                        <td>{{ $action->location ?? '-' }}</td>
-                        <td class="center">
-                            {{ $action->start_date ? \Carbon\Carbon::parse($action->start_date)->format('d-m-Y') : '-' }}
-                            @if($action->end_date)
-                                <br>~ {{ \Carbon\Carbon::parse($action->end_date)->format('d-m-Y') }}
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-            @else
-                <tr><td colspan="6" style="height: 80px;"></td></tr>
-            @endif
-        </tbody>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <!-- Birthplace / NRC block -->
+            <td>
+                မွေးရပ် –<br>
+                မှတ်ပုံတင်အမှတ် –<br>
+                နိုင်ငံသားစိစစ်ရေးကတ်အမှတ်–
+            </td>
+            <!-- Empty middle cells under DOB / Age -->
+            <td colspan="2" style="height:70px;"></td>
+        </tr>
+        <!-- Permanent / Current address headers -->
+        <tr>
+            <td class="bold">အမြဲတမ်းနေရပ်</td>
+            <td colspan="3" class="bold">လက်ရှိနေရပ်</td>
+        </tr>
+        <tr style="height:38px;">
+            <td>{{ $employee->permanent_address }}</td>
+            <td colspan="3">{{ $employee->current_address }}</td>
+        </tr>
     </table>
 
+    <!-- Education -->
+    <table>
+        <tr class="center">
+            <td style="width:34%;">ပညာအဆင့်</td>
+            <td style="width:30%;">ကျောင်း/တက္ကသိုလ်</td>
+            <td style="width:16%;">ရရှိသည့်နှစ်</td>
+            <td style="width:20%;">ထူးခြားချက်</td>
+        </tr>
+        <tr style="height:55px;">
+            <td></td><td></td><td></td><td></td>
+        </tr>
+    </table>
 
-    <div style="max-width: 800px; margin: 0 auto;">
+    {{--
+        5-column table — widths set via colgroup:
+        C1=33%  C2=18%  C3=12%  C4=25%  C5=12%
 
-        <div style="margin-bottom: 60px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                <div style="flex: 1;">
-                    ရက်စွဲ၊ {{ toMyanmarDate(now()) }}
-                </div>
-                <div style="width: 300px; display: flex; justify-content: space-between;">
-                    <span>လက်မှတ်</span>
-                    <span>-</span>
-                </div>
-            </div>
+        Exact Word-HTML rowspan/colspan structure:
+        R1: C1          | C2+C3(cs2)          | C4+C5(cs2)
+        R2: C1(rs2)     | C2+C3(cs2,rs2)      | C4          | C5
+        R3:                                    | C4(rs3)     | C5(rs3)
+        R4: C1+C2+C3(cs3)
+        R5: C1          | C2          | C3
+        R6: C1(rs2)     | C2(rs2)     | C3(rs2)  | C4+C5(cs2)
+        R7:                                        | C4          | C5
+        R8: C1          | C2+C3(cs2)              | C4(rs2)     | C5(rs2)
+        R9: C1          | C2+C3(cs2)
+    --}}
+    <table>
+        <colgroup>
+            <col style="width:33%">
+            <col style="width:18%">
+            <col style="width:12%">
+            <col style="width:25%">
+            <col style="width:12%">
+        </colgroup>
 
-            <div style="display: flex; position: relative;">
-                <div style="flex: 1; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                    ရုံးတံဆိပ်
-                </div>
+        {{-- R1 --}}
+        <tr>
+            <td>လက်ရှိဝန်ထမ်းအဖွဲ့ဝင်သည့်နေ့</td>
+            <td colspan="2">ခန့်အပ်သည့်နေ့</td>
+            <td colspan="2">ချီးမြှင့်ခဲ့သော ဆုဘွဲ့တံဆိပ်</td>
+        </tr>
 
-                <div style="width: 300px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>အမည်</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ကိုယ်ပိုင်အမှတ်</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ရာထူး</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ဌာန</span>
-                        <span>-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {{-- R2: C1 rowspan=2, C2+C3 rowspan=2, C4=အမျိုးအမည်, C5=ခုနှစ် --}}
+        <tr>
+            <td rowspan="2">
+                အမြဲတမ်းခန့်ထားခြင်း<br>
+                (ငယ်)<br>
+                ၎င်း(ကြီး)<br>
+                ၎င်း(ရွေးချယ်)<br>
+                ၎င်း(အထက်)
+            </td>
+            <td colspan="2" rowspan="2"></td>
+            <td>အမျိုးအမည်</td>
+            <td>ခုနှစ်</td>
+        </tr>
 
-        <div style="margin-bottom: 60px;">
-            <div style="text-align: left; padding-left: 15%; margin-bottom: 20px; font-weight: bold;">
-                ထပ်ဆင့်ထောက်ခံပါသည်။
-            </div>
+        {{-- R3: C1+C2+C3 still rowspanned; C4 rowspan=3, C5 rowspan=3 (empty award data) --}}
+        <tr>
+            <td rowspan="3"></td>
+            <td rowspan="3"></td>
+        </tr>
 
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                <div style="flex: 1;">
-                 ရက်စွဲ၊ {{ toMyanmarDate(now()) }}
-                </div>
-                <div style="width: 300px; display: flex; justify-content: space-between;">
-                    <span>လက်မှတ်</span>
-                    <span>-</span>
-                </div>
-            </div>
+        {{-- R4: Training header colspan=3; C4+C5 still rowspanned --}}
+        <tr>
+            <td colspan="3">အခြားတက်ရောက်ဖူးသောသင်တန်းများ</td>
+        </tr>
 
-            <div style="display: flex; position: relative;">
-                <div style="flex: 1; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                    ရုံးတံဆိပ်
-                </div>
+        {{-- R5: Training sub-headers; C4+C5 still rowspanned --}}
+        <tr>
+            <td>သင်တန်းအမည်</td>
+            <td>မှ</td>
+            <td>ထိ</td>
+        </tr>
 
-                <div style="width: 300px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>အမည်</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ကိုယ်ပိုင်အမှတ်</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ရာထူး</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ဌာန</span>
-                        <span>-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {{-- R6: C1 rowspan=2, C2 rowspan=2, C3 rowspan=2 (training data); C4+C5(cs2) = spouse info --}}
+        <tr>
+            <td rowspan="2" class="tall-row"></td>
+            <td rowspan="2"></td>
+            <td rowspan="2"></td>
+            <td colspan="2">
+                ခင်ပွန်း / ဇနီးအမည် –<br>
+                အလုပ်အကိုင် –<br>
+                ဒေသ –<br>
+                <br><br><br>
+            </td>
+        </tr>
 
-        <div style="margin-bottom: 60px;">
-            <div style="text-align: left; padding-left: 15%; margin-bottom: 20px; font-weight: bold;">
-                ထပ်ဆင့်ထောက်ခံပါသည်။
-            </div>
+        {{-- R7: C1+C2+C3 still rowspanned; C4=သား/သမီး, C5=မွေးနေ့ --}}
+        <tr>
+            <td>သား/သမီးများ</td>
+            <td>မွေးနေ့</td>
+        </tr>
 
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                <div style="flex: 1;">
-                  ရက်စွဲ၊ {{ toMyanmarDate(now()) }}
-                </div>
-                <div style="width: 300px; display: flex; justify-content: space-between;">
-                    <span>လက်မှတ်</span>
-                    <span>-</span>
-                </div>
-            </div>
+        {{-- R8: Language header | Hobby header | C4 rowspan=2, C5 rowspan=2 (children data) --}}
+        <tr>
+            <td>ကျွမ်းကျင်သောဘာသာစကား</td>
+            <td colspan="2" class="center">ဝါသနာထုံမှု</td>
+            <td rowspan="2"></td>
+            <td rowspan="2"></td>
+        </tr>
 
-            <div style="display: flex; position: relative;">
-                <div style="flex: 1; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                    ရုံးတံဆိပ်
-                </div>
+        {{-- R9: Language & Hobby looped from DB with Burmese ordinal numbers --}}
+        @php
+            $myanmarNums = ['၁','၂','၃','၄','၅','၆','၇','၈','၉','၁၀'];
+            $languages = $employee->languages ?? [];
+            $hobbies   = $employee->hobbies   ?? [];
+            $maxRows   = max(count($languages), count($hobbies), 1);
+        @endphp
+        <tr>
+            <td>
+                @foreach($languages as $i => $lang)
+                    ({{ $myanmarNums[$i] }}) {{ $lang }}<br>
+                @endforeach
+            </td>
+            <td colspan="2">
+                @foreach($hobbies as $i => $hobby)
+                    ({{ $myanmarNums[$i] }}) {{ $hobby }}<br>
+                @endforeach
+            </td>
+        </tr>
+    </table>
 
-                <div style="width: 300px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>အမည်</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ကိုယ်ပိုင်အမှတ်</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ရာထူး</span>
-                        <span>-</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span>ဌာန</span>
-                        <span>-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="form-id mt6">ပုံစံ &nbsp;– အဝ (၂၂၂) အဆက် (၁)</div>
+
+    <!-- 3 nearest relatives box -->
+    <table>
+        <tr>
+            <td class="center" style="padding: 6px;">အနီးစပ်ဆုံးဆွေမျိုး (၃) ဦး</td>
+        </tr>
+    </table>
+
+</div><!-- end page 1 -->
+
+
+<!-- ============================================================ -->
+<!-- PAGE 2  (IMG_0369)                                           -->
+<!-- ============================================================ -->
+<div class="page page-break">
+
+    <!-- 3 nearest relatives table (continued from page 1) -->
+    <table>
+        <tr class="center">
+            <td style="width:24%;">အမည်</td>
+            <td style="width:15%;">တော်စပ်ပုံ</td>
+            <td style="width:26%;">အလုပ်အကိုင်</td>
+            <td style="width:35%;">နေရပ်</td>
+        </tr>
+        <tr style="height:140px;">
+            <td></td><td></td><td></td><td></td>
+        </tr>
+    </table>
+
+    <!-- Previous work experience -->
+    <table>
+        <tr>
+            <td colspan="5" class="center">ယခင်ဆောင်ရွက်ခဲ့ဖူးသောလုပ်ငန်း</td>
+        </tr>
+        <tr class="center">
+            <td style="width:30%;">
+                လုပ်ငန်း/ရာထူး<br>
+                (လစာနှုန်း)
+            </td>
+            <td style="width:22%;">ဒေသ</td>
+            <td colspan="2" style="width:30%;">မှ (နေ့ရက်) ထိ</td>
+            <td style="width:18%;">မှတ်ချက်</td>
+        </tr>
+        <tr class="center" style="font-size:10px;">
+            <td></td>
+            <td></td>
+            <td style="width:15%;">မှ</td>
+            <td style="width:15%;">ထိ</td>
+            <td></td>
+        </tr>
+        <tr style="height:80px;">
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+    </table>
+
+    <!-- Appointment/transfer/punishment history -->
+    <table>
+        <tr>
+            <td colspan="5" class="center">ရာထူးခန့်ခြင်း/တိုး/လျော့/ပြောင်းရွှေ့ခြင်း/အပြစ်ပေးခြင်း/ခွင့်ပေးခြင်း/ပူးတွဲဆောင်ရွက်ခြင်းစသည့်</td>
+        </tr>
+        <tr class="center">
+            <td style="width:5%;">စဉ်</td>
+            <td style="width:33%;">လုပ်ငန်း/ရာထူးအမည်</td>
+            <td style="width:20%;">ဒေသ</td>
+            <td style="width:25%;">မှ (နေ့ရက်) ထိ</td>
+            <td style="width:17%;">မှတ်ချက်</td>
+        </tr>
+        <tr style="height:260px;">
+            <td></td><td></td><td></td><td></td><td></td>
+        </tr>
+    </table>
+
+    <!-- Right-aligned extra column header matching image -->
+    <div style="text-align:right; margin-top:2px; font-size:10px;">အသက်အမဲခံ ထားရှိလျှင်</div>
+
+    <div class="form-id mt6">ပုံစံ &nbsp;– အဝ (၂၂၂) အဆက် (၂)</div>
+
+    <div style="margin-top:16px; font-size:11px; line-height:1.8;">
+        ပူးတွဲပါ ဝန်ထမ်းမှတ်တမ်းအကျဉ်းပုံစံ အဝ(၂၂၂)တွင် ဖြည့်စွက်ထားသော အချက်အလက်များ မှန်ကန်ကြောင်း ကိုယ်တိုင်ကတိပြုလက်မှတ်ရေးထိုးပါသည်။
     </div>
-</div>
+
+</div><!-- end page 2 -->
+
+
+<!-- ============================================================ -->
+<!-- PAGE 3  (IMG_0368) – Signature page (3 endorsements)         -->
+<!-- ============================================================ -->
+<div class="page">
+
+    @for ($i = 0; $i < 3; $i++)
+    <div style="margin-bottom: 38px;">
+
+        @if ($i > 0)
+        <div style="font-weight:bold; margin-bottom:10px; margin-left:40px;">ထပ်ဆင့်ထောက်ခံပါသည်။</div>
+        @endif
+
+        <!-- Date line -->
+        <table class="no-border" style="margin-bottom:4px;">
+            <tr>
+                <td style="width:55%;">ရက်စွဲ၊ ၂၀၂&ensp;&ensp; ခုနှစ်၊ ဖေဖော်ဝါရီလ &ensp;&ensp;&ensp; ရက်</td>
+                <td>လက်မှတ် –</td>
+            </tr>
+        </table>
+
+        <!-- Office stamp + signature details side by side -->
+        <table class="no-border">
+            <tr>
+                <td style="width:45%; text-align:center; vertical-align:middle; padding-top:20px; height:80px;">
+                    ရုံးတံဆိပ်
+                </td>
+                <td style="vertical-align:top; padding-top:4px;">
+                    အမည် –<br>
+                    ကိုယ်ပိုင်အမှတ် –<br>
+                    ရာထူး –<br>
+                    ဌာန –
+                </td>
+            </tr>
+        </table>
+
+    </div>
+    @endfor
+
+</div><!-- end page 3 -->
+
 </body>
 </html>
