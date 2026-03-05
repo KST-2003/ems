@@ -8,21 +8,19 @@ class StorageHelper
 {
     public static function temporaryUrl(string $path, int $minutes = 30): string
     {
-        // ✅ If local disk, just return normal public URL
-        if (config('filesystems.default') === 'local' || config('filesystems.default') === 'public') {
-            return asset('storage/' . $path);
+        $disk = config('filesystems.default');
+
+        if ($disk === 's3') {
+            $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
+            $command = $client->getCommand('GetObject', [
+                'Bucket' => config('filesystems.disks.s3.bucket'),
+                'Key'    => $path,
+            ]);
+            $request = $client->createPresignedRequest($command, '+' . $minutes . ' minutes');
+            return (string) $request->getUri();
         }
 
-        // ✅ Only use S3 presigned URL when disk is actually s3
-        $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
-
-        $command = $client->getCommand('GetObject', [
-            'Bucket' => config('filesystems.disks.s3.bucket'),
-            'Key'    => $path,
-        ]);
-
-        $request = $client->createPresignedRequest($command, '+' . $minutes . ' minutes');
-
-        return (string) $request->getUri();
+        // For local/public disk — use Storage::url() which handles path correctly
+        return Storage::disk('public')->url($path);
     }
 }
