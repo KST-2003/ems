@@ -6,11 +6,14 @@ use Illuminate\Support\Facades\Storage;
 
 class StorageHelper
 {
-    /**
-     * Generate a temporary URL for R2/S3 — works in Laravel 8
-     */
     public static function temporaryUrl(string $path, int $minutes = 30): string
     {
+        // ✅ If local disk, just return normal public URL
+        if (config('filesystems.default') === 'local' || config('filesystems.default') === 'public') {
+            return asset('storage/' . $path);
+        }
+
+        // ✅ Only use S3 presigned URL when disk is actually s3
         $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
 
         $command = $client->getCommand('GetObject', [

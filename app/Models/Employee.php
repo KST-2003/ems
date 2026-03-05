@@ -221,14 +221,13 @@ class Employee extends Model
     //     });
     // }
     public function getProfileImageUrlAttribute(): string
-{
-    if ($this->profile_image) {
-        return StorageHelper::temporaryUrl('employees/' . $this->profile_image, 30);
-    }
+    {
+        if ($this->profile_image) {
+            return StorageHelper::temporaryUrl('employees/' . $this->profile_image, 30);
+        }
 
-    // fallback to placeholder if no image
-    return asset('images/no-profile.png');
-}
+        return asset('images/no-profile.png');
+    }
 
     public function getTotalExperienceYearsAttribute(): float
     {
