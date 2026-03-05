@@ -33,7 +33,7 @@ class EmployeeCertificate extends Model
     public function getFileUrlAttribute()
     {
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk('public');
+        $disk = Storage::disk(config('filesystems.default'));
         $path = 'certificates/' . $this->file_path;
         return $this->file_path && $disk->exists($path) ? '/storage/' . $path : null;
     }

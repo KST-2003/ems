@@ -86,7 +86,7 @@ class RecruitmentController extends Controller
 
         if ($request->hasFile('resume')) {
             if ($recruitment->resume_file_path) {
-                Storage::disk('public')->delete($recruitment->resume_file_path);
+                Storage::disk(config('filesystems.default'))->delete($recruitment->resume_file_path);
             }
             $data['resume_file_path'] = $request->file('resume')->store('resumes', 'public');
         }
@@ -118,13 +118,13 @@ class RecruitmentController extends Controller
     public function downloadResume(Recruitment $recruitment)
     {
         if (!$recruitment->resume_file_path) return abort(404);
-        return Storage::disk('public')->download($recruitment->resume_file_path);
+        return Storage::disk(config('filesystems.default'))->download($recruitment->resume_file_path);
     }
 
     public function destroy(Recruitment $recruitment)
     {
         if ($recruitment->resume_file_path) {
-            Storage::disk('public')->delete($recruitment->resume_file_path);
+            Storage::disk(config('filesystems.default'))->delete($recruitment->resume_file_path);
         }
         $recruitment->delete();
         return back()->with('success', 'Record deleted.');

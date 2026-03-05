@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use App\Traits\Loggable;
+use App\Helpers\StorageHelper;
 
 class Employee extends Model
 {
@@ -204,21 +205,30 @@ class Employee extends Model
 
     /** --- Accessors --- */
 
-    public function getProfileImageUrlAttribute(): ?string
-    {
-        $disk = Storage::disk('public');
-        $path = 'employees/' . $this->profile_image;
+    // public function getProfileImageUrlAttribute(): ?string
+    // {
+    //     $disk = Storage::disk('public');
+    //     $path = 'employees/' . $this->profile_image;
 
-        if ($this->profile_image && $disk->exists($path)) {
-            return '/storage/' . $path;
-        }
+    //     if ($this->profile_image && $disk->exists($path)) {
+    //         return '/storage/' . $path;
+    //     }
 
-        return asset('images/' . match ($this->gender) {
-            'male' => 'male-default.png',
-            'female' => 'female-default.png',
-            default => 'no-profile.png',
-        });
+    //     return asset('images/' . match ($this->gender) {
+    //         'male' => 'male-default.png',
+    //         'female' => 'female-default.png',
+    //         default => 'no-profile.png',
+    //     });
+    // }
+    public function getProfileImageUrlAttribute(): string
+{
+    if ($this->profile_image) {
+        return StorageHelper::temporaryUrl('employees/' . $this->profile_image, 30);
     }
+
+    // fallback to placeholder if no image
+    return asset('images/no-profile.png');
+}
 
     public function getTotalExperienceYearsAttribute(): float
     {

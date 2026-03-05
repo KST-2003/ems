@@ -100,51 +100,50 @@ class EmployeeController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $this->validateRequest($request);
+{
+    $validated = $this->validateRequest($request);
 
+    return DB::transaction(function () use ($validated, $request) {
+        
+        // ✅ Move image upload INSIDE transaction
         if ($request->hasFile('profile_image')) {
-            $path = $request->file('profile_image')->store('employees', 'public');
+            $path = $request->file('profile_image')->store('employees', config('filesystems.default'));
             $validated['profile_image'] = basename($path);
         }
 
-        return DB::transaction(function () use ($validated, $request) {
-            // These keys are filtered OUT because they belong to OTHER tables.
-            // Physical attributes (height, weight, etc.) are NOT in this list, 
-            // so they WILL be sent to the Employee::create() method.
-            $keysForOtherTables = [
-                'spouse_name',
-                'spouse_job',
-                'spouse_job_place',
-                'spouse_relatives',
-                'family_tree',
-                'abroads',
-                'children',
-                'educations',
-                'trainings',
-                'past_experiences',
-                'relatives',
-                'personnel_actions',
-                'experiences',
-                'service_record',
-                'certificates',
-                'criminal_records',
-                'schools',
-                'latest_school',
-                'school_voluntary',
-                'hobbies',
-                'citizen_duties',
-                'has_criminal_rec'
-            ];
+        $keysForOtherTables = [
+            'spouse_name',
+            'spouse_job',
+            'spouse_job_place',
+            'spouse_relatives',
+            'family_tree',
+            'abroads',
+            'children',
+            'educations',
+            'trainings',
+            'past_experiences',
+            'relatives',
+            'personnel_actions',
+            'experiences',
+            'service_record',
+            'certificates',
+            'criminal_records',
+            'schools',
+            'latest_school',
+            'school_voluntary',
+            'hobbies',
+            'citizen_duties',
+            'has_criminal_rec'
+        ];
 
-            $employeeData = Arr::except($validated, $keysForOtherTables);
-            $employee = Employee::create($employeeData);
+        $employeeData = Arr::except($validated, $keysForOtherTables);
+        $employee = Employee::create($employeeData);
 
-            $this->saveRelatedRecords($employee, $validated, $request);
+        $this->saveRelatedRecords($employee, $validated, $request);
 
-            return redirect()->route('employees.index')->with('success', __('messages.employee_created'));
-        });
-    }
+        return redirect()->route('employees.index')->with('success', __('messages.employee_created'));
+    });
+}
 
     public function update(Request $request, Employee $employee)
     {
@@ -156,9 +155,9 @@ class EmployeeController extends Controller
                 // 2. Handle Profile Image Update
                 if ($request->hasFile('profile_image')) {
                     if ($employee->profile_image) {
-                        Storage::disk('public')->delete('employees/' . $employee->profile_image);
+                        Storage::disk(config('filesystems.default'))->delete('employees/' . $employee->profile_image);
                     }
-                    $path = $request->file('profile_image')->store('employees', 'public');
+                    $path = $request->file('profile_image')->store('employees', config('filesystems.default'));
                     $validated['profile_image'] = basename($path);
                 }
 
@@ -224,20 +223,20 @@ class EmployeeController extends Controller
     {
         // Delete profile image
         if ($employee->profile_image) {
-            Storage::disk('public')->delete('employees/' . $employee->profile_image);
+            Storage::disk(config('filesystems.default'))->delete('employees/' . $employee->profile_image);
         }
 
         // Delete certificate files
         foreach ($employee->certificates as $certificate) {
             if ($certificate->file_path) {
-                Storage::disk('public')->delete('certificates/' . $certificate->file_path);
+                Storage::disk(config('filesystems.default'))->delete('certificates/' . $certificate->file_path);
             }
         }
 
         // Delete criminal record files
         foreach ($employee->criminalRecords as $record) {
             if ($record->file_path) {
-                Storage::disk('public')->delete('criminal_records/' . $record->file_path);
+                Storage::disk(config('filesystems.default'))->delete('criminal_records/' . $record->file_path);
             }
         }
 
@@ -535,7 +534,7 @@ class EmployeeController extends Controller
 
                 $filePath = null;
                 if ($request->hasFile("certificates.$index.file")) {
-                    $filePath = $request->file("certificates.$index.file")->store('certificates', 'public');
+                    $filePath = $request->file("certificates.$index.file")->store('certificates', config('filesystems.default'));
                     $filePath = basename($filePath);
                 }
 
@@ -553,7 +552,7 @@ class EmployeeController extends Controller
         if ($request->has('criminal_records')) {
             foreach ($request->input('criminal_records', []) as $index => $crim) {
                 $filePath = $request->hasFile("criminal_records.$index.file")
-                    ? basename($request->file("criminal_records.$index.file")->store('criminal_records', 'public'))
+                    ? basename($request->file("criminal_records.$index.file")->store('criminal_records', config('filesystems.default')))
                     : ($crim['existing_file'] ?? null);
 
                 if ($filePath || !empty($crim['description'])) {

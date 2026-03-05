@@ -471,7 +471,7 @@
 
                                                 @if ($filePath)
                                                     <div class="small text-muted">
-                                                        <a href="{{ asset('storage/certificates/' . $filePath) }}"
+                                                        <a href="{{ \App\Helpers\StorageHelper::temporaryUrl('certificates/' . $filePath, 30) }}"
                                                             target="_blank">View File</a>
 
                                                         <input type="hidden"

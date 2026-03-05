@@ -8,6 +8,8 @@ use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\EmployeePrintController;
 use App\Http\Controllers\Admin\SecurityController;
+use Illuminate\Support\Facades\Storage;
+use App\Helpers\StorageHelper;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -15,6 +17,27 @@ Route::get('/', function () {
 
 Auth::routes();
 
+// Route::get('/test-r2', function () {
+//     try {
+//         // Just test upload only first
+//         $result = Storage::disk('s3')->put('test/hello.txt', 'R2 is working!');
+        
+//         return response()->json([
+//             'upload_result' => $result, // should be TRUE
+//             'exists' => Storage::disk('s3')->exists('test/hello.txt'),
+//             'disk' => config('filesystems.default'),
+//             'bucket' => config('filesystems.disks.s3.bucket'),
+//             'endpoint' => config('filesystems.disks.s3.endpoint'),
+//         ]);
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'status'  => 'error',
+//             'message' => $e->getMessage(),
+//             'line' => $e->getLine(),
+//             'file' => $e->getFile(),
+//         ]);
+//     }
+// });
 
 Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->group(function () {
     Route::get('/security', [SecurityController::class, 'index'])->name('admin.security');
