@@ -60,7 +60,7 @@ class RoleAndPermissionSeeder extends Seeder
         ]);
 
         // 4. Create Default Users for Testing
-        $this->createUser('Super Admin', 'superadmin@gmail.com', $superAdminRole);
+        $this->createUser('Super Admin', 'superadmin@monstate.local', $superAdminRole);
         $this->createUser('Editor User', 'level3@gmail.com', $level3);
         $this->createUser('Data Entry User', 'level2@gmail.com', $level2);
         $this->createUser('Viewer User', 'level1@gmail.com', $level1);
@@ -71,7 +71,7 @@ class RoleAndPermissionSeeder extends Seeder
         $user = User::create([
             'name' => $name,
             'email' => $email,
-            'password' => Hash::make('password'),
+            'password' => Hash::make('p@$$w0rd'),
             'is_active' => true,
         ]);
         $user->assignRole($role);
