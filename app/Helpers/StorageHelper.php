@@ -21,6 +21,6 @@ class StorageHelper
         }
 
         // For local/public disk — use Storage::url() which handles path correctly
-        return Storage::disk('public')->url($path);
+        return '/storage/' . $path;
     }
 }
